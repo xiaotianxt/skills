@@ -1,0 +1,4 @@
+interface:
+  display_name: "Panopto MP4 Bulk Download"
+  short_description: "Extract Panopto mp4 links and bulk-download lectures."
+  default_prompt: "Use $panopto-mp4-bulk-download to extract real Panopto mp4 URLs and download all lecture videos in bulk."

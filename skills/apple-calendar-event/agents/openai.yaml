@@ -1,0 +1,4 @@
+interface:
+  display_name: "Apple Calendar Event"
+  short_description: "Create and verify events in macOS Calendar.app with osascript."
+  default_prompt: "Use this skill to create or verify macOS Calendar events in a specific calendar by querying calendars when needed, creating the event with osascript, and confirming the write succeeded."

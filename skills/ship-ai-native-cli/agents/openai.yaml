@@ -1,0 +1,4 @@
+interface:
+  display_name: "Ship AI-Native CLI"
+  short_description: "Turn local workflows into shipped CLI products"
+  default_prompt: "Use $ship-ai-native-cli to turn this workflow into a small, releasable AI-native CLI product."

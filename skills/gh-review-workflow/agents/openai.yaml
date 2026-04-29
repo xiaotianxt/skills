@@ -1,0 +1,4 @@
+interface:
+  display_name: "GH Review Workflow"
+  short_description: "Inspect and close PR review threads"
+  default_prompt: "Inspect the latest PR review comments, summarize what is actionable, and help resolve the threads after fixes are pushed."

@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SKILL_NAME="things3-manager"
+SKILL_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+SKILL_DATA_DIR="${CODEX_SKILLS_DATA_DIR:-$HOME/.codex/skills-data/$SKILL_NAME}"
+ENV_FILE="$SKILL_DATA_DIR/.env"
+
+mkdir -p "$SKILL_DATA_DIR" "$SKILL_DATA_DIR/logs" "$SKILL_DATA_DIR/tmp"
+
+if [[ ! -f "$ENV_FILE" ]]; then
+  cat >"$ENV_FILE" <<EOF
+THINGS_AUTH_TOKEN=""
+THINGS_APP_BUNDLE_ID="com.culturedcode.ThingsMac"
+EOF
+fi
+
+EXTERNAL_THINGS_AUTH_TOKEN="${THINGS_AUTH_TOKEN:-}"
+EXTERNAL_THINGS_APP_BUNDLE_ID="${THINGS_APP_BUNDLE_ID:-}"
+
+# shellcheck disable=SC1090
+source "$ENV_FILE"
+
+SKILL_NAME="things3-manager"
+SKILL_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+SKILL_DATA_DIR="${CODEX_SKILLS_DATA_DIR:-$HOME/.codex/skills-data/$SKILL_NAME}"
+
+if [[ -n "$EXTERNAL_THINGS_AUTH_TOKEN" ]]; then
+  THINGS_AUTH_TOKEN="$EXTERNAL_THINGS_AUTH_TOKEN"
+fi
+
+if [[ -n "$EXTERNAL_THINGS_APP_BUNDLE_ID" ]]; then
+  THINGS_APP_BUNDLE_ID="$EXTERNAL_THINGS_APP_BUNDLE_ID"
+fi
+
+export SKILL_NAME
+export SKILL_ROOT
+export SKILL_DATA_DIR
+export THINGS_AUTH_TOKEN
+export THINGS_APP_BUNDLE_ID
+
+exec python3 "$SKILL_ROOT/scripts/things_cli.py" "$@"
