@@ -33,6 +33,35 @@ python3 ~/.codex/skills/.system/skill-installer/scripts/install-skill-from-githu
 
 Restart Codex after installing or updating skills.
 
+## Local Source Of Truth
+
+For this machine, keep a checkout at `~/dev/skills` and symlink installed skills
+to this repo:
+
+```bash
+git clone https://github.com/xiaotianxt/skills.git ~/dev/skills
+~/dev/skills/scripts/link-local-skills.sh
+```
+
+This maps selected `~/.codex/skills/*` and `~/.agents/skills/*` entries to
+`~/dev/skills/skills/*`. To update installed skills later:
+
+```bash
+git -C ~/dev/skills pull --ff-only
+```
+
+To link local open source project repos back to these canonical skill docs:
+
+```bash
+~/dev/skills/scripts/link-project-skills.sh
+```
+
+That script links:
+
+- `~/dev/cx/SKILL.md` -> `~/dev/skills/skills/cx/SKILL.md`
+- `~/dev/tg/SKILL.md` -> `~/dev/skills/skills/tg/SKILL.md`
+- `~/dev/mimestreamctl/skills/mimestreamctl` -> `~/dev/skills/skills/mimestreamctl`
+
 ## Included Skills
 
 This repo includes user-owned local skills from `~/.codex/skills`, selected

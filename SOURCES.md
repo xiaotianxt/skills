@@ -25,3 +25,9 @@
 - The public `tg` skill preserves Telegram-facing wording.
 - Backup files, `.DS_Store`, `.git`, build output, local databases, local keys,
   and generated cache data were excluded.
+
+## Local Linking
+
+Use `scripts/link-local-skills.sh` to map installed local skills to this repo.
+Use `scripts/link-project-skills.sh` to map local project repo skill files back
+to the canonical skill docs here.
