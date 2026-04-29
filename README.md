@@ -33,6 +33,21 @@ python3 ~/.codex/skills/.system/skill-installer/scripts/install-skill-from-githu
 
 Restart Codex after installing or updating skills.
 
+## Why `skills list` Shows OpenClaw
+
+The `skills` CLI treats `skills/` as OpenClaw's project skill directory. This
+repo also uses `skills/<skill-name>/SKILL.md` as its canonical source layout, so
+running `npx skills list` from the repo root reports these project skills as
+`Agents: OpenClaw`.
+
+That label is the CLI's detected target-agent path, not the skill author,
+provenance, or runtime requirement. Install explicitly for Codex when using the
+CLI:
+
+```bash
+npx skills add xiaotianxt/skills -g -a codex --all
+```
+
 ## Local Source Of Truth
 
 For this machine, keep a checkout at `~/dev/skills` and symlink installed skills
