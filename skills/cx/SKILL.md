@@ -5,6 +5,8 @@ description: Use when Codex needs to operate the local Codex multi-slot workflow
 
 # cx
 
+Canonical source: https://github.com/xiaotianxt/skills/tree/main/skills/cx
+
 Use this skill when you need to operate the local Codex multi-slot workflow.
 
 ## Commands

@@ -29,5 +29,5 @@
 ## Local Linking
 
 Use `scripts/link-local-skills.sh` to map installed local skills to this repo.
-Use `scripts/link-project-skills.sh` to map local project repo skill files back
-to the canonical skill docs here.
+Use `scripts/sync-project-skills.sh` to mirror canonical skill docs into local
+project repos while keeping those repos readable on GitHub.

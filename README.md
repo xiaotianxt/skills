@@ -50,17 +50,24 @@ This maps selected `~/.codex/skills/*` and `~/.agents/skills/*` entries to
 git -C ~/dev/skills pull --ff-only
 ```
 
-To link local open source project repos back to these canonical skill docs:
+To mirror canonical skill docs into local open source project repos:
 
 ```bash
-~/dev/skills/scripts/link-project-skills.sh
+~/dev/skills/scripts/sync-project-skills.sh
 ```
 
-That script links:
+That script copies:
 
-- `~/dev/cx/SKILL.md` -> `~/dev/skills/skills/cx/SKILL.md`
-- `~/dev/tg/SKILL.md` -> `~/dev/skills/skills/tg/SKILL.md`
-- `~/dev/mimestreamctl/skills/mimestreamctl` -> `~/dev/skills/skills/mimestreamctl`
+- `~/dev/skills/skills/cx/SKILL.md` -> `~/dev/cx/SKILL.md`
+- `~/dev/skills/skills/tg/SKILL.md` -> `~/dev/tg/SKILL.md`
+- `~/dev/skills/skills/mimestreamctl` -> `~/dev/mimestreamctl/skills/mimestreamctl`
+
+Project repos keep real mirrored files rather than symlinks so GitHub can render
+the skill docs normally. Check drift without writing:
+
+```bash
+~/dev/skills/scripts/sync-project-skills.sh --check
+```
 
 ## Included Skills
 

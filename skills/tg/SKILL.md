@@ -5,6 +5,8 @@ description: Use when the user wants to read, search, inspect, back up, export, 
 
 # tg
 
+Canonical source: https://github.com/xiaotianxt/skills/tree/main/skills/tg
+
 ## When To Use
 
 Use this skill for user goals like:

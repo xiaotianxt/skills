@@ -5,6 +5,8 @@ description: "Control the Mimestream macOS email app through the local mimestrea
 
 # Mimestream Control
 
+Canonical source: https://github.com/xiaotianxt/skills/tree/main/skills/mimestreamctl
+
 Use this skill for day-to-day mail actions inside the local `Mimestream` app on macOS.
 
 ## Quick Start
