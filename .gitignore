@@ -33,3 +33,6 @@ auth-state.json
 screenshots/
 videos/
 reports/
+
+# Local-only backups created by link scripts
+.local-backups/

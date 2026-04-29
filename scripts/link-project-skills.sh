@@ -4,11 +4,14 @@ set -euo pipefail
 DEV_ROOT="${DEV_ROOT:-$HOME/dev}"
 SKILLS_ROOT="${SKILLS_ROOT:-$DEV_ROOT/skills}"
 STAMP="$(date +%Y%m%d-%H%M%S)"
+BACKUP_ROOT="${BACKUP_ROOT:-$SKILLS_ROOT/.local-backups/project-links-$STAMP}"
 
 backup_path() {
   local dest="$1"
-  local backup="$dest.backup-$STAMP"
+  local backup_dir="$BACKUP_ROOT/$(basename "$(dirname "$dest")")"
+  local backup="$backup_dir/$(basename "$dest")"
 
+  mkdir -p "$backup_dir"
   mv "$dest" "$backup"
   printf 'backup %s -> %s\n' "$dest" "$backup"
 }
