@@ -1,0 +1,4 @@
+interface:
+  display_name: "Rust Systems Style"
+  short_description: "Write and review disciplined Rust systems code"
+  default_prompt: "Use $rust-systems-style to write or review this Rust code with disciplined systems-programming taste."

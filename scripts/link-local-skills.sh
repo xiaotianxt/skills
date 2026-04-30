@@ -16,6 +16,7 @@ CODEX_SKILLS=(
   mimestreamctl
   mon
   panopto-mp4-bulk-download
+  rust-systems-style
   ship-ai-native-cli
   tg
   things3-manager
