@@ -102,6 +102,15 @@ Notable curation choices:
 See [SOURCES.md](SOURCES.md) for source mapping and [EXCLUDED.md](EXCLUDED.md)
 for what was intentionally left out.
 
+## Skill Evolution
+
+Skills are maintained as operational memory, not as project notebooks. After
+real use, promote only durable lessons that improve future triggering,
+workflow, safety, validation, or semantic clarity.
+
+See [docs/skill-evolution.md](docs/skill-evolution.md) for the short-term,
+long-term, and far-term maintenance model.
+
 ## Safety
 
 Before publication this repo was assembled from a clean copy and scanned for
