@@ -30,6 +30,8 @@ When sources conflict, choose the rule that improves reviewability for the curre
 - Mechanism separated from policy, especially around CLI behavior, retries, caching, logging, and FFI.
 - Safe public APIs over exposing raw pointers, handles, unchecked states, or caller-managed invariants.
 - Dependency restraint and local-first behavior when code touches private user data.
+- Semantic boundaries over cosmetic boundaries: extract modules around domain ownership, invariants, and failure behavior rather than file size alone.
+- Neutral internal vocabulary for sensitive local-first tools: confine upstream schema names, provider names, and raw protocol terminology to narrow adapter/dictionary layers when those names create privacy, security, or product-surface risk.
 
 ## Rust Rules
 
@@ -44,6 +46,8 @@ Design APIs so callers can do the right thing without remembering hidden rules:
 - Keep public dependencies, features, re-exports, and configuration knobs small. Add a knob only when a caller genuinely needs policy control.
 - Prefer exhaustive matches for closed enums. Use catch-all patterns only for intentionally open or `#[non_exhaustive]` types.
 - Treat ignored results as a review event. Bind them with a type or name when discarding is intentional.
+- Avoid storing derived state when a named method can compute the value from canonical fields. If the derived value is policy, name the policy explicitly.
+- Keep debug tools out of the default shipped surface. Gate diagnostic binaries, verbose probes, and risky helpers behind explicit features or separate commands, and keep those features covered by CI.
 
 For deeper Rust review, read [rust-review-checklist.md](references/rust-review-checklist.md).
 
@@ -64,6 +68,7 @@ Unsafe code is a proof obligation. Write it so a reviewer can check the proof wi
 Scale verification to the blast radius:
 
 - Run `cargo fmt --all -- --check`, `cargo clippy --all-targets -- -D warnings`, and `cargo test` when the project supports them.
+- Prefer `--all-features` in CI when optional features contain shipped, debug, or diagnostic code that should not bitrot.
 - Add focused tests for new behavior, regression fixes, parsing boundaries, and user-visible CLI errors.
 - For async/concurrency primitives, consider deterministic concurrency tests such as loom if the project already uses it.
 - For unsafe or low-level parsing, consider Miri, fuzzing, property tests, or adversarial tests when practical.
@@ -79,5 +84,8 @@ When reviewing or editing, lead with bugs and risk:
 - Public APIs that expose implementation details or force callers into unsafe usage.
 - New dependencies whose maintenance, transitive code, unsafe usage, or license cost is not justified.
 - Refactors mixed with behavior changes in a way that makes review harder.
+- Source vocabulary leaks: names from private schemas, vendors, protocols, or internal file layouts spreading beyond the narrow layer that has to speak them.
+- Default build and release surfaces that include exploratory tools, secret-printing diagnostics, or other code paths not intended for normal users.
+- CI and release warnings with dated deadlines. Treat them as maintenance debt before the deadline turns into a broken release path.
 
 Do not beautify code for its own sake. Improve code when the change makes ownership, invariants, failure, or review boundaries clearer.
