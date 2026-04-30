@@ -7,6 +7,10 @@ description: "Use when Codex is writing, editing, reviewing, or designing Rust s
 
 Use this skill as an engineering governor, not a formatting checklist. The aim is code that can be read under pressure, reviewed locally, and trusted at the boundary where types, operating systems, networks, files, processes, and humans fail.
 
+This is not a product-shipping workflow. When creating a new CLI product, use
+`ship-ai-native-cli` for product scope and release shape, then apply this skill
+continuously to the Rust and systems-code decisions.
+
 ## Operating Posture
 
 Before editing, ask what must remain true after this change:

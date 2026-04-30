@@ -14,6 +14,10 @@ metadata:
 
 > **PREREQUISITE:** Read `../gws-shared/SKILL.md` for auth, global flags, and security rules. If missing, run `gws generate-skills` to create it.
 
+Use this for Gmail API work through `gws`. If the user asks to operate the
+local Mimestream app, current selection, menus, or local drafts, use
+`mimestreamctl` instead.
+
 ```bash
 gws gmail <resource> <method> [flags]
 ```
@@ -56,4 +60,3 @@ gws schema gmail.<resource>.<method>
 ```
 
 Use `gws schema` output to build your `--params` and `--json` flags.
-

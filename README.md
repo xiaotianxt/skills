@@ -130,6 +130,9 @@ workflow, safety, validation, or semantic clarity.
 See [docs/skill-evolution.md](docs/skill-evolution.md) for the short-term,
 long-term, and far-term maintenance model.
 
+See [docs/skill-portfolio-governance.md](docs/skill-portfolio-governance.md)
+for skill roles, boundary rules, and the current portfolio map.
+
 ## Safety
 
 Before publication this repo was assembled from a clean copy and scanned for

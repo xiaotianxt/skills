@@ -9,6 +9,10 @@ Canonical source: https://github.com/xiaotianxt/skills/tree/main/skills/mimestre
 
 Use this skill for day-to-day mail actions inside the local `Mimestream` app on macOS.
 
+This is an app-control skill. For Gmail API work that does not depend on the
+local Mimestream UI, current selection, or app-local state, prefer the relevant
+`gws-gmail*` skill.
+
 ## Quick Start
 
 - Main wrapper:

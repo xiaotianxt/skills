@@ -7,6 +7,11 @@ description: Build an evidence-driven review plan for a course exam or final. Us
 
 Use this skill when planning how to review for a course exam, especially when the course has lecture recordings, transcripts, homeworks, practice exams, previous exams, or forum discussions.
 
+This skill owns the exam-review workflow. Use neighboring tool skills for data
+access and execution details: `canvas` for Canvas LMS data,
+`panopto-mp4-bulk-download` for lecture media extraction, and
+`things3-manager` for Things 3 task creation.
+
 ## Core Principle
 
 Do not start by making a generic day-by-day schedule. First reconstruct the exam contract:

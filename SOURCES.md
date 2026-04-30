@@ -7,6 +7,7 @@
 | `1password` | Created in this repo as the local source of truth |
 | `agent-browser-hints` | `~/Develop.localized/agent-browser-hints` |
 | `apple-calendar-event` | `~/.codex/skills/apple-calendar-event` |
+| `canvas` | Created in this repo as the local source of truth |
 | `course-exam-review-planner` | `~/.codex/skills/course-exam-review-planner` |
 | `cx` | `~/dev/cx/SKILL.md` |
 | `extract-transparent-signature` | `~/.codex/skills/extract-transparent-signature` |
@@ -16,6 +17,7 @@
 | `mimestreamctl` | `~/dev/mimestreamctl/skills/mimestreamctl` |
 | `mon` | `~/dev/mon/SKILL.md` |
 | `panopto-mp4-bulk-download` | `~/.codex/skills/panopto-mp4-bulk-download` |
+| `rust-systems-style` | Created in this repo as the local source of truth |
 | `ship-ai-native-cli` | `~/.codex/skills/ship-ai-native-cli` |
 | `tg` | `~/dev/tg/SKILL.md` |
 | `things3-manager` | `~/.codex/skills/things3-manager` |

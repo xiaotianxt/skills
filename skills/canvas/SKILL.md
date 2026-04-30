@@ -7,6 +7,10 @@ description: "Use when Codex needs to work with Canvas LMS / Instructure through
 
 Use Canvas through the REST API first. Prefer API calls over browser automation for courses, grades, files, modules, pages, assignments, submissions, and syllabus data.
 
+This is a Canvas data-access skill. For full exam preparation planning, use
+`course-exam-review-planner` as the workflow owner and use this skill only for
+Canvas-specific data gathering and grade calculations.
+
 ## Authentication
 
 - Default CMU Canvas base URL: `https://canvas.cmu.edu`.

@@ -9,6 +9,10 @@ Use this skill to convert a concrete workflow into a small product, not a pile
 of scripts. The pattern is distilled from `~/dev/tg`, `~/dev/cx`, `~/dev/mon`,
 their release history, and the Codex sessions that shaped them.
 
+This is a product-workflow skill. When the product is Rust or systems-facing,
+use `rust-systems-style` as the engineering governor rather than expanding Rust
+style rules here.
+
 ## Operating Rule
 
 Before coding, identify the product boundary:
