@@ -48,10 +48,25 @@ CLI:
 npx skills add xiaotianxt/skills -g -a codex --all
 ```
 
-## Local Source Of Truth
+## Development Model
 
-For this machine, keep a checkout at `~/dev/skills` and symlink installed skills
-to this repo:
+For this machine, `~/dev/skills` is the canonical source tree for user-owned
+skills. Treat `~/.codex/skills` and `~/.agents/skills` as runtime install views,
+not as the place to author durable skill changes.
+
+When creating or updating a user-owned skill:
+
+1. Edit `~/dev/skills/skills/<skill-name>/...`.
+2. Commit the change in this repo.
+3. Link the installed runtime copy back to this checkout.
+4. Restart Codex or the target agent when a refreshed skill must be loaded.
+
+This keeps skill history reviewable, avoids editing generated or installed
+copies directly, and makes local improvements publishable.
+
+## Runtime Links
+
+Create or refresh the runtime symlinks with:
 
 ```bash
 git clone https://github.com/xiaotianxt/skills.git ~/dev/skills
@@ -59,10 +74,14 @@ git clone https://github.com/xiaotianxt/skills.git ~/dev/skills
 ```
 
 This maps selected `~/.codex/skills/*` and `~/.agents/skills/*` entries to
-`~/dev/skills/skills/*`. To update installed skills later:
+`~/dev/skills/skills/*`. Existing installed directories are backed up before
+being replaced by symlinks.
+
+To update installed skills later:
 
 ```bash
 git -C ~/dev/skills pull --ff-only
+~/dev/skills/scripts/link-local-skills.sh
 ```
 
 To mirror canonical skill docs into local open source project repos:
