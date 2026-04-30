@@ -22,6 +22,8 @@ Use the local 1Password CLI for scoped secret access. Keep workflows local and a
 ## Local Setup
 
 - Verify availability with `op --version`.
+- When a command needs to read secrets through the 1Password desktop app integration, request `sandbox_permissions="require_escalated"` by default. The workspace sandbox can block the local app socket and produce misleading errors such as "couldn't connect to the 1Password desktop app" even when 1Password is installed and working.
+- If `op read`, `op run`, or `op signin` fails with a desktop app connection error inside the sandbox, rerun the exact scoped command outside the sandbox with a concise approval request before asking the user to restart 1Password.
 - If auth is missing, use `op signin` and expect the user to approve in 1Password.
 - If multiple accounts are configured, use `--account` or `OP_ACCOUNT` only after identifying the intended account.
 - Do not require `tmux`; this machine may not have it. Use normal serialized shell commands unless an interactive TTY is genuinely needed.

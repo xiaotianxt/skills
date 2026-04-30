@@ -9,6 +9,7 @@ STAMP="$(date +%Y%m%d-%H%M%S)"
 CODEX_SKILLS=(
   1password
   apple-calendar-event
+  canvas
   course-exam-review-planner
   cx
   extract-transparent-signature

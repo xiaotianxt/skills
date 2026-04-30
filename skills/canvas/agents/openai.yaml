@@ -1,0 +1,4 @@
+interface:
+  display_name: "Canvas"
+  short_description: "Use Canvas LMS API safely and efficiently."
+  default_prompt: "Use Canvas to inspect my courses, assignments, submissions, grades, files, pages, modules, or deadlines."
