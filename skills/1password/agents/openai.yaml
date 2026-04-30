@@ -1,0 +1,4 @@
+interface:
+  display_name: "1Password"
+  short_description: "Use 1Password CLI without leaking secrets"
+  default_prompt: "Use $1password to inject an API key from a 1Password secret reference into this local command."

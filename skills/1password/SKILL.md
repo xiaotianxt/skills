@@ -1,0 +1,78 @@
+---
+name: 1password
+description: "Use when Codex needs to work with 1Password or the `op` CLI: reading a specific secret reference, injecting API keys or credentials into local commands, using `op run` or `op inject`, checking 1Password CLI auth state, handling `API_CREDENTIAL` items, creating or updating 1Password items, or deciding how to keep secrets out of code, logs, shell history, issues, PRs, and final responses."
+---
+
+# 1Password
+
+Use the local 1Password CLI for scoped secret access. Keep workflows local and avoid exposing secret values to chat, logs, files, source control, or command history.
+
+## Default Rules
+
+- Use only the specific credential needed for the current task.
+- Prefer a user-provided `op://...` secret reference over searching vaults.
+- Do not enumerate vaults, accounts, or items unless the user asks or the reference is ambiguous.
+- Do not print, summarize, quote, or reveal secret values in chat or final responses.
+- Do not paste plaintext secrets into source files, `.env` files, logs, issues, PRs, commit messages, or shell history.
+- Prefer `op run` for commands that accept environment variables.
+- Prefer templates with secret references plus `op inject` only when a real config file is required; delete resolved files when no longer needed.
+- Avoid `op run --no-masking` and `op item get --reveal` unless the user explicitly asks to display a secret.
+- Treat service account tokens, exported `.env` files, one-time passwords, private keys, cookies, and raw item JSON as sensitive.
+
+## Local Setup
+
+- Verify availability with `op --version`.
+- If auth is missing, use `op signin` and expect the user to approve in 1Password.
+- If multiple accounts are configured, use `--account` or `OP_ACCOUNT` only after identifying the intended account.
+- Do not require `tmux`; this machine may not have it. Use normal serialized shell commands unless an interactive TTY is genuinely needed.
+
+## Common Workflows
+
+### Inject A Secret Into A Command
+
+Ask for the secret reference, then run the target command without exposing the value:
+
+```bash
+API_KEY='op://Private/Service API/credential' op run -- my-command
+```
+
+For project commands, prefer a template env file containing `op://` references:
+
+```bash
+op run --env-file .env.op -- npm run dev
+```
+
+### Read A Specific Secret
+
+Use `op read` only when the secret must be passed to a local process that cannot consume `op run` references. Do not echo the value back to the user.
+
+```bash
+op read 'op://Private/Service API/credential'
+```
+
+For `API_CREDENTIAL` items in this setup, the preferred field is `credential`:
+
+```bash
+op read 'op://Private/<title-or-id>/credential'
+```
+
+### Create Or Update 1Password Items
+
+Do not ask the user to paste secret values into chat. If CLI item creation is required, avoid command-line assignment statements for sensitive values because command arguments can be logged or visible to local processes.
+
+Use the 1Password app when practical. If CLI is necessary, use a short-lived local JSON template or stdin flow, set restrictive file permissions, and delete any plaintext temporary file immediately after use.
+
+## When To Load References
+
+- Read `references/op-cli.md` for concrete `op read`, `op run`, `op inject`, auth, and account-selection patterns.
+- Read `references/item-management.md` before creating, editing, copying, or exporting 1Password items.
+
+## Stop Conditions
+
+Stop and ask the user before:
+
+- Listing vaults/items/accounts to discover a credential.
+- Exporting secrets to disk, even temporarily.
+- Creating service accounts, Connect tokens, Kubernetes secrets, or CI secrets.
+- Changing global shell, git, gh, or 1Password plugin configuration.
+- Running any command likely to display secret values.

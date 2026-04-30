@@ -4,6 +4,7 @@
 
 | Skill | Source |
 | --- | --- |
+| `1password` | Created in this repo as the local source of truth |
 | `agent-browser-hints` | `~/Develop.localized/agent-browser-hints` |
 | `apple-calendar-event` | `~/.codex/skills/apple-calendar-event` |
 | `course-exam-review-planner` | `~/.codex/skills/course-exam-review-planner` |

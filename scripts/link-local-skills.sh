@@ -7,6 +7,7 @@ AGENTS_SKILLS_DIR="${AGENTS_SKILLS_DIR:-$HOME/.agents/skills}"
 STAMP="$(date +%Y%m%d-%H%M%S)"
 
 CODEX_SKILLS=(
+  1password
   apple-calendar-event
   course-exam-review-planner
   cx
