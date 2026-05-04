@@ -4,6 +4,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 CODEX_SKILLS_DIR="${CODEX_SKILLS_DIR:-$HOME/.codex/skills}"
 AGENTS_SKILLS_DIR="${AGENTS_SKILLS_DIR:-$HOME/.agents/skills}"
+CLAUDE_SKILLS_DIR="${CLAUDE_SKILLS_DIR:-$HOME/.claude/skills}"
 STAMP="$(date +%Y%m%d-%H%M%S)"
 
 CODEX_SKILLS=(
@@ -14,6 +15,7 @@ CODEX_SKILLS=(
   cx
   extract-transparent-signature
   gh-review-workflow
+  macos-messages
   mimestreamctl
   mon
   panopto-mp4-bulk-download
@@ -40,6 +42,22 @@ AGENTS_SKILLS=(
   gws-gmail-triage
   gws-gmail-watch
   gws-shared
+  macos-messages
+)
+
+CLAUDE_SKILLS=(
+  apple-calendar-event
+  course-exam-review-planner
+  cx
+  extract-transparent-signature
+  gh-review-workflow
+  macos-messages
+  mimestreamctl
+  mon
+  panopto-mp4-bulk-download
+  ship-ai-native-cli
+  tg
+  things3-manager
 )
 
 backup_path() {
@@ -90,6 +108,10 @@ main() {
 
   for skill in "${AGENTS_SKILLS[@]}"; do
     link_skill "$AGENTS_SKILLS_DIR" "$skill"
+  done
+
+  for skill in "${CLAUDE_SKILLS[@]}"; do
+    link_skill "$CLAUDE_SKILLS_DIR" "$skill"
   done
 }
 

@@ -55,6 +55,20 @@ Design APIs so callers can do the right thing without remembering hidden rules:
 
 For deeper Rust review, read [rust-review-checklist.md](references/rust-review-checklist.md).
 
+## Layout And Path Types
+
+For filesystem layout structs, store canonical roots or externally supplied
+paths, not every derived child path. Prefer named methods such as `slots_dir()`,
+`state_file()`, or `cache_path()` for paths computed from roots.
+
+Treat repeated fixture updates, broad struct literal churn, or adding a new field
+to many unrelated tests as a design warning. Before continuing, ask whether the
+new value is canonical state, policy, or merely derived layout. Derived layout
+belongs behind methods on the owning path type.
+
+A path/layout type should keep topology local: callers may ask for named paths,
+but should not need to know how the directory tree is assembled.
+
 ## Unsafe Rules
 
 Unsafe code is a proof obligation. Write it so a reviewer can check the proof without reconstructing the whole program.

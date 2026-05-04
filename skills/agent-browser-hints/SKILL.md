@@ -15,6 +15,8 @@ Source note: current `agent-browser` 0.26.x is daemon-based. If a daemon for a s
 
 Source note for windows/background work: current `agent-browser` tracks page targets globally across the attached browser, not per Helium window. New page targets from any Helium window are attached and registered. In current source, registering a new page sets `active_page_index` to that new page, and `tab <label>` calls CDP `Page.bringToFront`.
 
+Design note from Obscura review, 2026-05-04: Obscura is useful as a CDP session/target design reference. It runs a separate lightweight headless engine and simulated CDP server, so it cannot replace this skill's Helium workflow. It does not attach to the user's Helium profile, extensions, cookies, OAuth/SSO state, or active tabs. For this skill, borrow only the architectural idea of explicit `sessionId -> targetId/pageId` routing.
+
 ## Decision Rules
 
 - Attach only to Helium Chromium's existing CDP endpoint with `agent-browser --session <task-session> --cdp <helium-cdp-endpoint>`.
@@ -22,6 +24,7 @@ Source note for windows/background work: current `agent-browser` tracks page tar
 - Use a short, task-scoped agent-browser session name, such as `helium-cmu-payroll` or `helium-download-check`. This isolates the agent-browser daemon from stale agent-browser state while preserving the Helium browser profile and login state.
 - Do not use the default agent-browser session, a previously used session, or any named session whose CDP endpoint has not been verified in the current task.
 - Every `agent-browser` command that touches a page must include the same `--session <task-session> --cdp <helium-cdp-endpoint>` pair.
+- If a maintained target-pinned helper or target-id-aware `agent-browser` patch exists, prefer it for hard background work. It must attach to Helium's existing CDP endpoint, select one explicit page `targetId`, open a CDP session for that target, and route every page command through that session. It must not create a new browser profile or launch another browser.
 - Prefer `tab new --label <label> <url>` and then `tab <label>` for task pages. The tab switch path calls CDP `Page.bringToFront`. Avoid `open <url>` unless you intentionally selected a disposable tab, because `open` navigates the current active tab inside Helium.
 - For background operation, first bind the task target by label, snapshot it, then run action clusters without calling `tab`, `tab new`, `open`, or `window new`. If agent-browser's active tab drifts, re-bind with `tab <label>` and re-snapshot before continuing.
 - Do not promise window-scoped isolation with stock agent-browser. It can target a labeled page, but it does not expose "only this Helium window" semantics.
@@ -58,6 +61,15 @@ What does not work as a stock guarantee:
 - No strict "only operate in this Helium window" guarantee. The attached CDP endpoint exposes all page targets in the browser profile, across Helium windows.
 - No stable background guarantee while the user is opening new Helium tabs/windows. New page targets can be added to the same agent-browser daemon and become its active page.
 
+Preferred hard-isolation direction:
+
+- Add a small target-pinned raw CDP helper, or patch `agent-browser` to expose the same behavior.
+- The helper should discover targets from `http://127.0.0.1:<port>/json/list`, select a target by explicit `targetId`, URL, or caller-provided label, and create or remember a CDP `sessionId` with `Target.attachToTarget`.
+- Commands must be sent with that `sessionId`, and should never depend on `agent-browser`'s active page index, global active tab, or `Page.bringToFront`.
+- Target-pinned commands may still mutate the selected page, navigate it, or trigger downloads; they are isolation from active-tab drift, not read-only safety.
+- If a selected target is gone, detached, or navigated unexpectedly, stop and rediscover targets instead of falling back to the global active tab.
+- Keep this helper separate from Obscura. Obscura's simulated browser is appropriate for stateless scraping experiments, while Helium login reuse requires the real Helium CDP endpoint.
+
 Practical operating model:
 
 1. Use a task-scoped agent-browser daemon session.
@@ -65,7 +77,55 @@ Practical operating model:
 3. Run `tab <label>` once to bind the active target. Expect this to foreground that tab.
 4. Snapshot and perform a cluster of actions without more `tab` or `open` calls.
 5. If the user changes Helium windows/tabs or opens a new page, assume active target may have drifted. Verify with `tab list`/`get url`; if needed, re-run `tab <label>` and re-snapshot.
-6. For hard background/window-pinned automation, use a target-id-specific raw CDP helper or patch agent-browser to support target/window pinning. Stock CLI is not enough for that guarantee.
+6. For hard background/window-pinned automation, use a target-id-specific raw CDP helper or patch agent-browser to support target/window pinning. Stock CLI is only the compatibility fallback.
+
+## Target-Pinned Helper Contract
+
+Use this contract when creating a helper or evaluating an `agent-browser` patch for this skill. The goal is to eliminate active-tab drift while preserving the user's existing Helium browser state.
+
+Current local helper:
+
+- Source: `scripts/helium-cdp-pin.mjs`
+- Installed command: `helium-cdp-pin`
+- Runtime: Node.js with built-in `fetch` and `WebSocket`; no npm dependencies.
+- CDP discovery: defaults to `--cdp auto`, which reads Helium's `DevToolsActivePort` from `~/Library/Application Support/net.imput.helium`, verifies the exact WebSocket path, then falls back to common explicit ports.
+- CDP authorization: run `helium-cdp-pin enable` to open `chrome://inspect/#remote-debugging` in Helium and wait while the user approves the Helium remote debugging prompt.
+- Binding state: `~/.local/state/helium-cdp-pin/bindings.json` unless `HELIUM_CDP_PIN_STATE` is set.
+
+Required behavior:
+
+- Connect only to the user-provided Helium CDP endpoint or to the endpoint discovered from Helium's `DevToolsActivePort`.
+- Prefer the exact WebSocket path from `DevToolsActivePort`. Do not rely on `/json/version` when Helium/Chromium remote-debugging authorization exposes only a direct WebSocket path.
+- Select a page by stable `targetId` whenever possible. URL/title matching can be used for discovery, but the chosen target must be converted to a concrete `targetId` before action.
+- Attach with `Target.attachToTarget` and keep the returned `sessionId`.
+- Route all target-specific calls with that `sessionId`, including `Runtime.evaluate`, `DOM.*`, `Page.*`, `Input.*`, and `Network.*`.
+- Keep a local mapping of task label to `{targetId, sessionId, url_at_bind}` for diagnostics.
+- Before each action cluster, verify `Target.getTargetInfo` for the pinned `targetId`. If the target is missing or the URL no longer matches the task intent, stop and report the mismatch.
+- Avoid `Page.bringToFront` except when the user explicitly asks to foreground the task page.
+- Do not launch, close, restart, or mutate Helium itself. Closing a helper connection must only detach/disconnect from CDP.
+- Do not silently fall back to stock `agent-browser` active-tab commands after a pinning failure.
+
+Recommended command surface for a helper:
+
+```bash
+helium-cdp-pin enable
+helium-cdp-pin list
+helium-cdp-pin bind --label taskpage --target-id <id>
+helium-cdp-pin bind --label taskpage --url-prefix https://app.example.com/
+helium-cdp-pin eval --label taskpage "document.title"
+helium-cdp-pin snapshot --label taskpage
+helium-cdp-pin click --label taskpage "#save"
+helium-cdp-pin fill --label taskpage "#name" "value"
+helium-cdp-pin screenshot --label taskpage /tmp/task.png
+helium-cdp-pin detach --label taskpage
+```
+
+Implementation guidance:
+
+- Prefer a small standalone helper first. It is easier to verify than a broad `agent-browser` daemon patch.
+- A patch to `agent-browser` should add an explicit `--target-id` or `--target-label` mode that bypasses global active page selection for all compatible commands.
+- Keep the first version narrow: `list`, `bind`, `eval`, `get url/title`, `screenshot`, and simple selector click/fill are enough to validate the model.
+- Add a regression that creates a second Helium target after binding, then proves commands still affect the pinned target without re-selecting or foregrounding it.
 
 Validated local test, 2026-04-30:
 
@@ -89,6 +149,7 @@ Behavior contract to preserve:
 - Background action clusters are allowed only after the task label is bound and verified active inside agent-browser.
 - If a new Helium page target appears during a task, assume active target drift until verified. Future versions may fix this; until verified, keep this conservative rule.
 - Stock agent-browser must not be treated as window-pinned unless a new version explicitly exposes and validates window/target pinning.
+- A target-pinned helper or patched `agent-browser --target-id` mode must prove that commands continue to hit the pinned target after another Helium page target is created or activated.
 
 Regression setup:
 
@@ -184,7 +245,22 @@ Regression setup:
 
    Expected for agent-browser 0.26.x: a newly created Helium page target may become agent-browser's active tab. If a future version keeps the task label active, update this skill to describe the stronger behavior.
 
-8. Cleanup.
+8. If a target-pinned helper or patch is available, validate it against the same drift case.
+
+   ```bash
+   # Example command names only; adapt to the actual helper or patch.
+   TASK_TARGET_ID="$(curl -s "http://127.0.0.1:${HELIUM_CDP}/json/list" | jq -r '.[] | select(.url == "file:///tmp/helium-agent-browser-regression.html") | .id' | head -n 1)"
+   helium-cdp-pin --cdp "$HELIUM_CDP" bind --label "$TASK_LABEL" --target-id "$TASK_TARGET_ID"
+   NEW_TARGET_ID="$(curl -s -X PUT "http://127.0.0.1:${HELIUM_CDP}/json/new?about:blank" | jq -r .id)"
+   helium-cdp-pin --cdp "$HELIUM_CDP" eval --label "$TASK_LABEL" "document.location.href"
+   helium-cdp-pin --cdp "$HELIUM_CDP" fill --label "$TASK_LABEL" "#name" "Pinned Target"
+   helium-cdp-pin --cdp "$HELIUM_CDP" eval --label "$TASK_LABEL" "document.querySelector('#name').value"
+   curl -s "http://127.0.0.1:${HELIUM_CDP}/json/close/${NEW_TARGET_ID}"
+   ```
+
+   Expected for a target-pinned implementation: the evaluated URL and DOM mutation come from the original fixture target even after a new Helium target exists.
+
+9. Cleanup.
 
    ```bash
    agent-browser --session "$TASK_SESSION" --cdp "$HELIUM_CDP" tab close "$TASK_LABEL"
@@ -201,13 +277,14 @@ Pass criteria:
 - The background cluster mutates the fixture page and returns the expected DOM/localStorage value.
 - Screenshots come from the task page, not the user's foreground page.
 - If drift occurs after creating a new target, the documented re-bind workflow (`tab <label>` then fresh `snapshot -i`) restores the task tab.
+- If a target-pinned helper or patch is present, the pinned-target regression keeps acting on the original `targetId` after a second target is created or activated.
 
 Failure triage:
 
 - If `get cdp-url` differs from raw Helium `/json/version`, stop. The daemon is not attached to the intended Helium endpoint.
 - If `tab list` shows a user page as active before an action cluster, do not continue. Re-bind the label and re-snapshot.
 - If a command acts on the user's foreground page, close the task-scoped agent-browser session, leave Helium running, and inspect `tab list` plus raw `/json/list`.
-- If a future version supports target/window pinning, prefer that over label rebinding, then update this skill with the exact command and regression result.
+- If a future version supports target/window pinning, prefer that over label rebinding after it passes the pinned-target regression. Update this skill with the exact command and result.
 
 ## Recommended Flows
 
@@ -255,4 +332,26 @@ agent-browser --session "$TASK_SESSION" --cdp "$HELIUM_CDP" click "#save"
 agent-browser --session "$TASK_SESSION" --cdp "$HELIUM_CDP" wait --text "Saved"
 agent-browser --session "$TASK_SESSION" --cdp "$HELIUM_CDP" eval "document.title"
 agent-browser --session "$TASK_SESSION" --cdp "$HELIUM_CDP" screenshot /tmp/task.png
+```
+
+### Target-Pinned Helper Flow
+
+Use this only when a validated helper or patched `agent-browser` target-id mode exists.
+
+```bash
+TASK_LABEL="taskpage"
+TARGET_URL_PREFIX="https://app.example.com/"
+
+helium-cdp-pin enable
+helium-cdp-pin list
+helium-cdp-pin bind --label "$TASK_LABEL" --url-prefix "$TARGET_URL_PREFIX"
+helium-cdp-pin eval --label "$TASK_LABEL" "document.location.href"
+
+# These commands should stay pinned to the bound target even if the user
+# opens another Helium tab or window.
+helium-cdp-pin fill --label "$TASK_LABEL" "#name" "value"
+helium-cdp-pin click --label "$TASK_LABEL" "#save"
+helium-cdp-pin eval --label "$TASK_LABEL" "document.title"
+helium-cdp-pin screenshot --label "$TASK_LABEL" /tmp/task.png
+helium-cdp-pin detach --label "$TASK_LABEL"
 ```
