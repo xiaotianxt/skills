@@ -1,7 +1,7 @@
 ---
 name: tg
-description: Use when the user wants to read, search, inspect, back up, export, or troubleshoot local macOS WeChat chat history with tg. Keep the user's chat data local and guide them through the shortest working tg command flow.
-when_to_use: Trigger for requests mentioning 微信聊天记录, 微信聊天, 微信群, 微信里, local chat backup, message search, message export, or troubleshooting why local chat history cannot be read.
+description: Use when the user wants to read, search, inspect, back up, export, or troubleshoot local macOS Telegram chat history with tg. Keep the user's chat data local and guide them through the shortest working tg command flow.
+when_to_use: Trigger for requests mentioning Telegram聊天记录, Telegram聊天, Telegram群, Telegram里, local chat backup, message search, message export, or troubleshooting why local chat history cannot be read.
 ---
 
 # tg
@@ -12,13 +12,13 @@ Canonical source: https://github.com/xiaotianxt/skills/tree/main/skills/tg
 
 Use this skill for user goals like:
 
-- "帮我读一下和某个人的微信聊天记录"
-- "查微信里有没有某个关键词"
-- "导出这个微信群的聊天记录"
-- "把微信聊天备份成 json/csv/txt"
-- "为什么本机微信聊天记录读不出来"
+- "帮我读一下和某个人的Telegram聊天记录"
+- "查Telegram里有没有某个关键词"
+- "导出这个Telegram群的聊天记录"
+- "把Telegram聊天备份成 json/csv/txt"
+- "为什么本机Telegram聊天记录读不出来"
 
-Do not wait for the user to name tg. tg is the tool; the user goal is local macOS WeChat history access.
+Do not wait for the user to name tg. tg is the tool; the user goal is local macOS Telegram history access.
 
 ## Privacy
 
@@ -28,15 +28,15 @@ For summary requests, choose display names by the target. If the user clearly na
 
 ## First Setup
 
-For a fresh setup, ask the user to open and log in to macOS WeChat first.
+For a fresh setup, ask the user to open and log in to macOS Telegram first.
 
-If tg needs permission to access the desktop app, have the user quit WeChat and run:
+If tg needs permission to access the desktop app, have the user quit Telegram and run:
 
 ```bash
-sudo codesign --force --deep --sign - /Applications/WeChat.app
+sudo codesign --force --deep --sign - /Applications/Telegram.app
 ```
 
-If WeChat is installed somewhere else, use that `.app` path instead.
+If Telegram is installed somewhere else, use that `.app` path instead.
 
 Then run:
 
@@ -164,10 +164,10 @@ Date, datetime, and displayed message times use the current system time zone.
 
 ## Troubleshooting
 
-- `WeChat is not running`: open and log in to macOS WeChat, then run `sudo tg keys`.
-- `task_for_pid failed`: quit WeChat, run `sudo codesign --force --deep --sign - /Applications/WeChat.app`, reopen WeChat, then run `sudo tg keys`.
+- `Telegram is not running`: open and log in to macOS Telegram, then run `sudo tg keys`.
+- `task_for_pid failed`: quit Telegram, run `sudo codesign --force --deep --sign - /Applications/Telegram.app`, reopen Telegram, then run `sudo tg keys`.
 - No chats or messages found: run `tg refresh --keys`, then `tg sessions --top 50`.
 - Wrong chat matched: use `tg sessions --top 100` and rerun with the exact `tgid_...` or `...@chatroom`.
-- Missing media: open or download the media in WeChat first, then retry `tg image` or `tg export --media-dir ...`.
+- Missing media: open or download the media in Telegram first, then retry `tg image` or `tg export --media-dir ...`.
 - Voice output defaults to normalized `.voice`; use `tg voice ... --format wav` after installing a compatible native voice decoder.
 - Unknown issue: run `tg doctor` or `tg doctor "联系人或群名"` and follow the result.
