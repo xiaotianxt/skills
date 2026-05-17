@@ -1,6 +1,6 @@
 ---
 name: gh-review-workflow
-description: Inspect GitHub pull request review state, including latest PR comments, review submissions, unresolved inline threads, and post-fix thread resolution. Use when Codex needs to check "latest PR comments", summarize actionable review feedback, inspect the current branch PR, or resolve review threads after fixes are pushed.
+description: Inspect and address GitHub pull request review state, including latest PR comments, review submissions, unresolved inline threads, actionable review feedback, and post-fix thread resolution. Use when Codex needs to check "latest PR comments", summarize or implement requested PR changes, inspect the current branch PR, or resolve review threads after fixes are pushed.
 ---
 
 # GH Review Workflow
@@ -28,7 +28,13 @@ Use this skill when the user wants the real review state of a GitHub PR, not jus
 - Separate real blockers from style suggestions and "reply only" items.
 - Call out whether a thread is still current or already `isOutdated`.
 
-5. After fixes.
+5. If the user asks to address review feedback.
+- Confirm the intended scope unless the user explicitly says to fix all unresolved actionable threads.
+- Keep each code change traceable to a feedback cluster.
+- If a comment needs explanation rather than code, draft the response instead of forcing a code change.
+- Verify locally before pushing or resolving any thread.
+
+6. After fixes.
 - Verify code locally before pushing.
 - Push the branch.
 - If the user asked to resolve addressed threads, run `python3 ~/.codex/skills/gh-review-workflow/scripts/resolve_review_threads.py THREAD_ID...`.

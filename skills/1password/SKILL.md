@@ -5,17 +5,19 @@ description: "Use when Codex needs to work with 1Password or the `op` CLI: readi
 
 # 1Password
 
-Use the local 1Password CLI for scoped secret access. Keep workflows local and avoid exposing secret values to chat, logs, files, source control, or command history.
+Use the local 1Password CLI only for scoped 1Password work. For local machine-only API keys on this Mac, prefer macOS Keychain through `keychain-secret` and use 1Password as an import/fallback source. Keep workflows local and avoid exposing secret values to chat, logs, files, source control, or command history.
 
 ## Default Rules
 
 - Use only the specific credential needed for the current task.
+- Prefer `keychain-secret get <service> <account>` for local API-key reads after a secret has been migrated to Keychain.
+- Prefer `keychain-secret import-op <service> <account> <op-ref>` for one-time migration from a known 1Password reference.
 - Prefer a user-provided `op://...` secret reference over searching vaults.
 - Do not enumerate vaults, accounts, or items unless the user asks or the reference is ambiguous.
 - Do not print, summarize, quote, or reveal secret values in chat or final responses.
 - Do not paste plaintext secrets into source files, `.env` files, logs, issues, PRs, commit messages, or shell history.
-- Prefer `op run` for commands that accept environment variables.
-- Prefer templates with secret references plus `op inject` only when a real config file is required; delete resolved files when no longer needed.
+- Prefer `op run` only for workflows that cannot use Keychain yet and accept environment variables.
+- Prefer templates with secret references plus `op inject` only when a real config file is required and Keychain is unsuitable; delete resolved files when no longer needed.
 - Avoid `op run --no-masking` and `op item get --reveal` unless the user explicitly asks to display a secret.
 - Treat service account tokens, exported `.env` files, one-time passwords, private keys, cookies, and raw item JSON as sensitive.
 
@@ -32,7 +34,13 @@ Use the local 1Password CLI for scoped secret access. Keep workflows local and a
 
 ### Inject A Secret Into A Command
 
-Ask for the secret reference, then run the target command without exposing the value:
+For local API keys, prefer Keychain:
+
+```bash
+API_KEY="$(keychain-secret get codex.service credential)" my-command
+```
+
+When the secret exists only in 1Password, ask for the secret reference, then run the target command without exposing the value:
 
 ```bash
 API_KEY='op://Private/Service API/credential' op run -- my-command
@@ -46,7 +54,7 @@ op run --env-file .env.op -- npm run dev
 
 ### Read A Specific Secret
 
-Use `op read` only when the secret must be passed to a local process that cannot consume `op run` references. Do not echo the value back to the user.
+Use `op read` only when the secret is not yet migrated to Keychain and must be passed to a local process that cannot consume `op run` references. Do not echo the value back to the user.
 
 ```bash
 op read 'op://Private/Service API/credential'
@@ -56,6 +64,12 @@ For `API_CREDENTIAL` items in this setup, the preferred field is `credential`:
 
 ```bash
 op read 'op://Private/<title-or-id>/credential'
+```
+
+To migrate that item to Keychain:
+
+```bash
+keychain-secret import-op codex.service credential 'op://Private/<title-or-id>/credential'
 ```
 
 ### Create Or Update 1Password Items

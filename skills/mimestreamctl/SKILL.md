@@ -1,168 +1,170 @@
 ---
 name: mimestreamctl
-description: "Control the Mimestream macOS email app through the local mimestreamctl CLI. Use when asked to operate Mimestream directly on this Mac: inspect the current selection, read the selected message, inspect durable links, browse or click menus, reply or reply-all, compose drafts, move mail, paste text, or run common mailbox and draft actions."
+description: "Use when Codex needs to work with Mimestream mail on this Mac: investigate local mail, search receipts or support threads, identify actual recipients from sent mail, read selected messages, draft or reply in Mimestream, visually verify compose windows, or perform explicit mailbox actions. Prefer Gmail API skills for server-authoritative send/delivery/label/thread state that does not depend on Mimestream."
 ---
 
 # Mimestream Control
 
-Canonical source: https://github.com/xiaotianxt/skills/tree/main/skills/mimestreamctl
+This skill exists to keep agents from guessing in email workflows. Use it as a mail forensics and drafting interface, not as a generic UI-clicking script.
 
-Use this skill for day-to-day mail actions inside the local `Mimestream` app on macOS.
+## First Principles
 
-This is an app-control skill. For Gmail API work that does not depend on the
-local Mimestream UI, current selection, or app-local state, prefer the relevant
-`gws-gmail*` skill.
+Email tasks have four different truth sources. Pick the right one before running commands:
 
-## Quick Start
+1. **Local cache truth**: Mimestream's SQLite cache is best for searching, timelines, receipts, old sent mail, headers, and evidence.
+2. **Visible UI truth**: the front Mimestream window is best only for "the message/draft currently on screen."
+3. **Server truth**: Gmail/API state is best for whether a message is actually sent, delivered, trashed, labeled, or threaded.
+4. **Human intent**: sending, trashing, spam, unsubscribe, and bulk actions require explicit user intent.
 
-- Main wrapper:
-  - `~/.codex/skills/mimestreamctl/scripts/mimestreamctl --help`
-- Wrapper resolution order:
-  - `MIMESTREAMCTL_BIN`
-  - repo-local `mimestreamctl`
-  - `~/dev/mimestreamctl/mimestreamctl`
-- Requirements:
-  - `Mimestream.app` is installed and running in the logged-in macOS desktop session.
-  - Terminal has Accessibility access plus Automation access for `System Events` and `Mimestream`.
-  - Menu-driven commands assume English menu names.
-  - Read/reply/move actions target the current front Mimestream window and selection.
+Default route: local cache for facts, UI for visible draft verification, Gmail API for server-authoritative state.
 
-## Workflow
+## Entry Point
 
-- Stability first:
-  - Run `mimestreamctl` UI/AX commands serially. Do not parallelize `selection`, `list`, `read`, `links`, `menus`, or row-click UI scripts; Mimestream front-window state is shared and parallel calls can produce `Can’t get application "Mimestream" (-1728)`, stale body/selection mismatches, or account/window drift.
-  - If the wrapper behaves oddly, retry the resolved binary directly: `~/dev/mimestreamctl/mimestreamctl ...`.
-  - The first `read`/`list` may compile the Swift AX helper at `/tmp/mimestreamctl-ax-text`; allow a longer timeout before treating it as hung.
-- Higher-level local mail API:
-  - Prefer `~/.codex/skills/mimestreamctl/scripts/mimestreamctl mail ...` for bulk search, audits, and unsubscribe work. These commands read Mimestream's local SQLite cache and do not depend on the current front window.
-  - `mail accounts` lists local accounts.
-  - `mail search --account gmail --from openai --since 7d --limit 20` returns stable JSON message records with tokenized unsubscribe headers redacted by default.
-  - Add `--summary-only` on bulk `mail search`, `mail unsubscribe`, and `mail trash` checks when you only need counts by account/sender/subject.
-  - `mail get --id <id> --links` reads one cached message and extracts body links.
-  - `mail unsubscribe --... --dry-run` builds an unsubscribe plan; `mail unsubscribe --... --confirm` executes it. Never execute without first understanding the dry-run plan unless the user explicitly requested bulk execution.
-  - Use `--write-ids /tmp/scope.ids` on unsubscribe/trash dry-runs when a later action must reuse the exact local message set. Reuse it with `--ids-file /tmp/scope.ids`; saved ID sets are not capped by the normal default limit unless `--limit` is passed.
-  - `mail trash --... --dry-run` builds a deletion plan from the local Mimestream cache; `mail trash --... --confirm` moves the matching Gmail messages to Trash through the Gmail API. It requires `gws` Gmail auth with `gmail.modify`, skips messages already marked as trashed by default, and should be run only after checking `matched_count`, `target_count`, `already_trashed_count`, and sender/subject summaries.
-- Inspecting the current selection:
-  - Prefer `~/.codex/skills/mimestreamctl/scripts/mimestreamctl selection`
-  - Use `--first` to keep only the first selected item.
-  - Use `--json` for structured output.
-- Listing the current message table:
-  - `~/.codex/skills/mimestreamctl/scripts/mimestreamctl list`
-  - `~/.codex/skills/mimestreamctl/scripts/mimestreamctl list 100 --json`
-  - `~/.codex/skills/mimestreamctl/scripts/mimestreamctl list latest 250`
-  - `~/.codex/skills/mimestreamctl/scripts/mimestreamctl list all --format plain`
-  - `list` defaults to the latest `100` rows from the front message table.
-  - `all` returns all rows currently exposed through Accessibility in the front message table.
-  - `list all` can take noticeably longer on large mailboxes.
-- Reading the current message:
-  - Prefer `~/.codex/skills/mimestreamctl/scripts/mimestreamctl read`
-  - Default output is Markdown from the fast Swift AX reader.
-  - Use `--full` when sender, date, and preview are needed.
-  - Use `--no-body` when only metadata and durable links are needed.
-  - Use `--max-chars 2000` or similar when the body may be too long.
-  - Use `--format plain` or `--json` when a simpler or structured format is better.
-- Getting message URLs only:
-  - Use `~/.codex/skills/mimestreamctl/scripts/mimestreamctl links`
-  - Use `--resolve-redirects` when you need the final destination behind tracking links.
-  - `read` and `links` derive `private_link`, `mimestream_open_url`, and `gmail_url` from the first selected item when available.
-- Bulk link extraction or unsubscribe audits:
-  - Prefer `mail unsubscribe` over hand-written SQLite and curl. It handles the cache lookup, `List-Unsubscribe` parsing, one-click POST, body-link fallback, simple confirmation form/link following, response classification, URL redaction, and transactional-mail safeguards.
-  - For noisy marketing cleanup, use a narrow sender-domain filter first, not a broad query that can catch unrelated newsletters mentioning the brand:
-    - `mail unsubscribe --from email.openai.com --unsubscribe-only --limit 500 --dry-run --summary-only --write-ids /tmp/openai-mail.ids`
-    - `mail unsubscribe --ids-file /tmp/openai-mail.ids --confirm --summary-only`
-  - Use `--headers-only` when only standards-based `List-Unsubscribe` should be used.
-  - By default it blocks likely transactional/security/billing mail; use `--include-transactional` only when the user explicitly asks.
-  - If a provider requires JavaScript, CAPTCHA, sign-in, or an ambiguous confirmation page, the command returns a non-success status rather than guessing. Inspect one representative message or confirmation URL manually before retrying.
-- Bulk deletion:
-  - Prefer `mail trash` for deleting search results by local cache criteria instead of manipulating the Mimestream UI or editing SQLite directly.
-  - Always run `mail trash --... --dry-run` first and inspect count/accounts/senders/subjects before `--confirm`.
-  - When deleting after unsubscribe, prefer reusing the saved IDs instead of rebuilding the search:
-    - `mail trash --ids-file /tmp/openai-mail.ids --dry-run --summary-only`
-    - `mail trash --ids-file /tmp/openai-mail.ids --confirm --summary-only`
-  - `mail trash` uses `ZSERVERID` from Mimestream as the Gmail message id, so it performs the real server-side move to Trash and lets Mimestream sync back down.
-  - A successful Gmail Trash response is authoritative even if a local Mimestream cache check briefly still shows messages. Recheck after sync; a second trash pass should usually return zero targets.
-  - If Gmail auth is missing, run `gws auth login --services gmail --scopes https://www.googleapis.com/auth/gmail.modify` and select the target Gmail account.
-  - Do not directly update `ZISTRASHED` or mailbox join tables in SQLite; that only mutates the local cache and may not sync.
-- Bringing the app forward or discovering menus:
-  - `~/.codex/skills/mimestreamctl/scripts/mimestreamctl activate`
-  - `~/.codex/skills/mimestreamctl/scripts/mimestreamctl menus`
-  - `~/.codex/skills/mimestreamctl/scripts/mimestreamctl menus Message`
-  - `~/.codex/skills/mimestreamctl/scripts/mimestreamctl menus --all --json`
-  - `~/.codex/skills/mimestreamctl/scripts/mimestreamctl click "Message" "Archive" --dry-run`
-- Replying to the selected message:
-  - Draft only:
-    - `~/.codex/skills/mimestreamctl/scripts/mimestreamctl reply --body-file /tmp/reply.txt`
-    - `~/.codex/skills/mimestreamctl/scripts/mimestreamctl reply-all --body-file /tmp/reply.txt`
-  - Send explicitly:
-    - `~/.codex/skills/mimestreamctl/scripts/mimestreamctl reply --body-file /tmp/reply.txt --send --confirm`
-    - `~/.codex/skills/mimestreamctl/scripts/mimestreamctl reply-all --body-file /tmp/reply.txt --send-and-archive --confirm`
-- Moving mail:
-  - `~/.codex/skills/mimestreamctl/scripts/mimestreamctl move "Receipts"`
-  - `~/.codex/skills/mimestreamctl/scripts/mimestreamctl go inbox`
-  - `~/.codex/skills/mimestreamctl/scripts/mimestreamctl archive`
-  - `~/.codex/skills/mimestreamctl/scripts/mimestreamctl mark-read`
-  - `~/.codex/skills/mimestreamctl/scripts/mimestreamctl mark-all-read`
-  - `~/.codex/skills/mimestreamctl/scripts/mimestreamctl star`
-  - `~/.codex/skills/mimestreamctl/scripts/mimestreamctl important`
-  - `~/.codex/skills/mimestreamctl/scripts/mimestreamctl forward`
-  - `~/.codex/skills/mimestreamctl/scripts/mimestreamctl move-to-inbox`
-  - `~/.codex/skills/mimestreamctl/scripts/mimestreamctl not-spam`
-  - `~/.codex/skills/mimestreamctl/scripts/mimestreamctl new-message`
-  - `~/.codex/skills/mimestreamctl/scripts/mimestreamctl trash --confirm`
-  - `~/.codex/skills/mimestreamctl/scripts/mimestreamctl spam --confirm`
-  - `~/.codex/skills/mimestreamctl/scripts/mimestreamctl send --confirm`
-  - `~/.codex/skills/mimestreamctl/scripts/mimestreamctl send-and-archive --confirm`
-- Drafting a new message:
-  - `~/.codex/skills/mimestreamctl/scripts/mimestreamctl compose --to someone@example.com --subject "Subject" --body-file /tmp/body.txt`
-  - `~/.codex/skills/mimestreamctl/scripts/mimestreamctl compose --to someone@example.com --cc team@example.com --from someone@work.com`
-  - `--from` accepts the full visible sender label or a unique substring such as an email address.
-  - Use `--print-url` or `--dry-run` to inspect the generated `mailto:` URL first.
-- Inserting text into the focused compose field or control:
-  - `~/.codex/skills/mimestreamctl/scripts/mimestreamctl insert-text "hello"`
-  - `~/.codex/skills/mimestreamctl/scripts/mimestreamctl insert-text --file /tmp/body.txt`
+```bash
+~/.codex/skills/mimestreamctl/scripts/mimestreamctl --help
+```
 
-## Commands
+If the wrapper behaves oddly, retry:
 
-- `selection`
-- `list`
-- `mail`
-- `read`
-- `links`
-- `activate`
-- `menus`
-- `click`
-- `reply`
-- `reply-all`
-- `compose`
-- `move`
-- `archive`
-- `mark-read`
-- `mark-all-read`
-- `star`
-- `important`
-- `forward`
-- `move-to-inbox`
-- `not-spam`
-- `new-message`
-- `go`
-- `trash`
-- `spam`
-- `send`
-- `send-and-archive`
-- `insert-text`
+```bash
+~/dev/mimestreamctl/mimestreamctl --help
+```
 
-## Operating Rules
+UI commands require Mimestream running in the logged-in macOS desktop session with Accessibility and Automation permissions. Run UI commands serially.
 
-- Prefer `read` for normal reading. It uses the fast Swift AX path by default.
-- Use `read --full` only when sender, date, or preview are needed.
-- Use `read --no-body` or `links` when only metadata or URLs are needed; do not read the whole body first unless the user needs it.
-- `selection` often returns a Markdown link like `[Subject](https://links.mimestream.com/...)`; `read` and `links` use that to derive durable open links.
-- `reply`, `reply-all`, and `insert-text` restore the previous clipboard by default. Use `--no-restore-clipboard` only when you intentionally want to leave generated text on the clipboard.
-- `click` requires exact top-level menu and item names. Use `menus` first if the label is unclear.
-- `go` only accepts `inbox`, `starred`, `sent`, `all-mail`, `spam`, or `trash`.
-- `compose --from` fails on ambiguous matches. Prefer a unique email address when possible.
-- Before write actions, make sure the correct message or draft is active in `Mimestream`.
-- `send`, `send-and-archive`, `trash`, and `spam` are guarded and require `--confirm`. Reply send variants also require `--confirm`.
-- For destructive or send actions, summarize the exact target and action before executing unless the user already explicitly asked for it.
-- Avoid raw AX row-number clicks for bulk workflows. Row indexes can refer to virtualized rows, drift after scrolling, or switch the active account/window. If UI selection is unavoidable, verify `selection`, `read --no-body --json`, and the front window/account after each click.
-- If body extraction looks wrong, first bring `Mimestream` to the front and confirm the intended message is selected in the main mail window. A subject/body mismatch usually means the UI state changed underneath the command; stop and re-read serially.
+## Decision Tree
+
+**Need facts from mail?** Use `mail search`, `mail get`, `mail headers`, `mail thread`, or `mail sent-search`. Do not start from the front UI.
+
+**Need to know who to send to?** Search past sent mail and headers. Do not infer from a visible received message.
+
+**Need to reply in an existing thread?** Verify the selected message, then use `reply` or `reply-all`. Do not create a new compose unless the user wants a new thread.
+
+**Need a new draft?** Write the body to a file, open a visible draft, then verify To/Cc/From/Subject/body. Do not send unless explicitly asked.
+
+**Need to move/delete/send?** Verify the exact target first. Destructive and send commands need `--confirm`.
+
+## Golden Paths
+
+### Evidence Or Timeline
+
+```bash
+~/.codex/skills/mimestreamctl/scripts/mimestreamctl mail accounts
+~/.codex/skills/mimestreamctl/scripts/mimestreamctl mail search --query hertz --since 2026-01-01 --limit 100 --include-transactional --show-addresses
+~/.codex/skills/mimestreamctl/scripts/mimestreamctl mail get --id 12345 --include-html --show-addresses
+~/.codex/skills/mimestreamctl/scripts/mimestreamctl mail headers --id 12345
+~/.codex/skills/mimestreamctl/scripts/mimestreamctl mail thread --id 12345
+```
+
+For billing, travel, legal-ish, school, or support disputes:
+
+1. Search broad by brand/domain.
+2. Search exact identifiers.
+3. Separate reservation/order records, receipts, user-sent complaints, bounces, and human replies.
+4. Use `mail thread --id` on promising sent messages or support replies to connect "what I sent" to "what they replied."
+5. Extract dates, amounts, ids, account, sender, recipient, and thread/case ids.
+6. Build the answer from source message ids.
+7. State missing or ambiguous evidence.
+
+Use `--include-transactional` for receipts, confirmations, support, billing, security, and travel records.
+
+### Recipient Discovery
+
+```bash
+~/.codex/skills/mimestreamctl/scripts/mimestreamctl mail sent-search --query hertz --since 2025-11-01 --limit 20
+~/.codex/skills/mimestreamctl/scripts/mimestreamctl mail sent-search --to hertz.com --since 2025-11-01 --limit 50
+~/.codex/skills/mimestreamctl/scripts/mimestreamctl mail headers --id 12345
+~/.codex/skills/mimestreamctl/scripts/mimestreamctl mail thread --id 12345
+```
+
+Classify addresses before drafting:
+
+- **Intake address**: new outbound complaints that later produce case replies.
+- **Case-reply address**: works for existing case threads.
+- **No-reply/bounce address**: avoid for new disputes.
+- **Specialized address**: marketing, loyalty, receipts, verification, etc.
+
+When uncertain, propose `To`/`Cc` with rationale instead of silently choosing.
+
+### Current Selected Message
+
+```bash
+~/.codex/skills/mimestreamctl/scripts/mimestreamctl selection --json --first
+~/.codex/skills/mimestreamctl/scripts/mimestreamctl read --full --max-chars 4000
+~/.codex/skills/mimestreamctl/scripts/mimestreamctl links --resolve-redirects
+```
+
+If subject/body/window do not match, stop and re-verify the Mimestream selection. UI state can drift.
+
+### New Draft
+
+```bash
+~/.codex/skills/mimestreamctl/scripts/mimestreamctl compose \
+  --to person@example.com \
+  --cc team@example.com \
+  --subject "Subject" \
+  --body-file /tmp/body.txt
+```
+
+If `compose` fails with application-name resolution but Mimestream is installed:
+
+```bash
+open -b com.mimestream.Mimestream "mailto:..."
+```
+
+Before saying the draft is ready, verify:
+
+- To/Cc/Bcc are intended.
+- From account is intended.
+- Subject is correct for new case vs existing thread.
+- Body starts and ends correctly.
+- No placeholders or private tokens remain.
+- The message is still a draft.
+
+Use AX text when available; otherwise use a screenshot or visible window inspection. A zero exit code only means the open request returned.
+
+### Reply Draft
+
+```bash
+~/.codex/skills/mimestreamctl/scripts/mimestreamctl read --no-body --json
+~/.codex/skills/mimestreamctl/scripts/mimestreamctl reply --body-file /tmp/reply.txt
+~/.codex/skills/mimestreamctl/scripts/mimestreamctl reply-all --body-file /tmp/reply.txt
+```
+
+Use `reply-all` only when thread continuity and participant preservation matter.
+
+### Explicit Actions
+
+```bash
+~/.codex/skills/mimestreamctl/scripts/mimestreamctl archive
+~/.codex/skills/mimestreamctl/scripts/mimestreamctl trash --confirm
+~/.codex/skills/mimestreamctl/scripts/mimestreamctl send --confirm
+```
+
+For bulk unsubscribe or trash, dry-run first, save exact ids, inspect summaries, then confirm only after user approval.
+
+## Command Semantics
+
+- `mail search`: search cache by account/from/to/subject/query/date. Add `--show-addresses` when recipient or threading context matters.
+- `mail sent-search`: search sent mail and always include To/Cc/Bcc and threading headers.
+- `mail get --id`: read one cached message. It does not filter out transactional mail.
+- `mail headers --id`: read addressing, state, message-id, reply-to, in-reply-to, and references for one message.
+- `mail thread --id`: list messages in the same local Mimestream thread, with addresses and state.
+- `selection`, `read`, `links`, `list`: inspect visible Mimestream UI state.
+- `compose`, `reply`, `reply-all`, `insert-text`: create or edit visible drafts.
+- `archive`, `move`, `trash`, `spam`, `send`: mutate mail or draft state.
+
+## Failure Handling
+
+- If a message appears in `mail search` but body extraction is poor, use `mail get --include-html` and convert HTML to visible text.
+- If local cache evidence conflicts with server state, use Gmail API skills for the authoritative answer.
+- If UI automation fails, bring Mimestream forward and retry once; then fall back to bundle-id `open` or visible screenshot verification.
+- If recipient choice depends on previous successful workflows, use `sent-search` and support replies, not memory.
+- Never edit Mimestream SQLite directly.
+
+## Safety
+
+- Never send, trash, spam, bulk unsubscribe, or bulk delete without explicit intent and confirmation.
+- Never rely on the front window for bulk work.
+- Never expose full tracking links, unsubscribe tokens, private message links, or secrets.
+- Keep summaries evidence-based: cite message ids in working notes and report only the relevant facts to the user.

@@ -26,6 +26,7 @@ build/
 node_modules/
 __pycache__/
 *.pyc
+sources/
 
 # Agent/browser state
 auth-state.json

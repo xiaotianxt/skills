@@ -1,6 +1,5 @@
 ---
 name: gws-calendar
-version: 1.0.0
 description: "Google Calendar: Manage calendars and events."
 metadata:
   openclaw:
@@ -17,6 +16,26 @@ metadata:
 ```bash
 gws calendar <resource> <method> [flags]
 ```
+
+## User Calendar Policy
+
+- Treat Google Calendar as the durable source of truth for user events.
+- For this user's current setup, prefer `tianyupeiandy@gmail.com` as the default personal write calendar when the user does not specify another calendar.
+- Verify the active account before writes:
+
+```bash
+gws auth status
+```
+
+- List calendar IDs before cleanup, migration, or writes in multi-account contexts:
+
+```bash
+gws calendar calendarList list --params '{"showHidden":true,"maxResults":250}'
+```
+
+- Use stable calendar IDs, not display names, when names may be duplicated. Apple Calendar can show multiple calendars with the same name from different stores.
+- Treat school calendars such as `yupeit@andrew.cmu.edu` as transition sources unless the user explicitly asks to write there.
+- Do not fall back to Apple Calendar for writes unless the user explicitly asks for Apple Calendar.
 
 ## Helper Commands
 
@@ -105,4 +124,3 @@ gws schema calendar.<resource>.<method>
 ```
 
 Use `gws schema` output to build your `--params` and `--json` flags.
-

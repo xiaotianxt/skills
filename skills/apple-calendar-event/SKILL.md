@@ -1,20 +1,42 @@
 ---
 name: apple-calendar-event
-description: Create and verify events in macOS Calendar.app with osascript-backed local automation. Use when Codex needs to add an interview, meeting, class, reminder block, or other dated event to a specific Apple Calendar calendar on the current Mac, especially when the target calendar name must be checked first and the write should be verified afterward.
+description: Inspect, create, and verify events in macOS Calendar.app with osascript-backed local automation. Use when Codex needs to audit local Apple Calendar sources/defaults, understand Calendar.sqlitedb cache state, or add an event directly to a specific Apple Calendar calendar on the current Mac. Prefer Google Calendar skills for durable calendar writes unless the user explicitly asks for Apple Calendar.
 ---
 
 # Apple Calendar Event
 
-Use this skill for direct local writes to `Calendar.app`.
+Use this skill for local `Calendar.app` inspection and direct Apple Calendar writes.
+
+## Guardrails
+
+- Prefer Google Calendar (`gws-calendar` / `gws-calendar-insert`) for durable user calendar writes unless the user explicitly asks for Apple Calendar.
+- Treat `Calendar.sqlitedb` as a read-only cache for inspection. Never edit it directly.
+- Do not trust Calendar.app's default calendar for automation. It may be `UseLastSelectedAsDefaultCalendar` or point at an unsuitable source.
+- Do not identify a write target by display name alone when names are duplicated. Audit first, then use the exact calendar name only after confirming it is unambiguous enough for the requested write.
+- Expect Apple Calendar to contain mixed stores: Google, iCloud, school CalDAV, subscribed calendars, Reminders, Siri suggestions, birthdays, and local/system stores.
 
 ## Workflow
 
+### Audit local Calendar.app state
+
+Use this before cleanup, migration planning, or any Apple write where the target source is unclear:
+
+```bash
+python3 scripts/calendar_audit.py
+python3 scripts/calendar_audit.py --json
+```
+
+The audit reads `~/Library/Group Containers/group.com.apple.calendar/Calendar.sqlitedb` in read-only mode, maps calendars to their stores/accounts, reports duplicate display names, and maps the Calendar.app default calendar UUID when possible.
+
+### Create an Apple Calendar event
+
 1. Confirm the event title, target calendar name, local date, start time, and end time.
-2. If the calendar name is uncertain, run `scripts/calendar_event.py list-calendars` and pick the exact calendar name from the output.
-3. Put video links in `--location`. Put meeting numbers, interview notes, and buffer details in `--notes`.
-4. If the user asks to reserve buffer time, reflect that in the final blocked time range before writing the event.
-5. Create the event with `scripts/calendar_event.py create-event ...`.
-6. Verify the write with `scripts/calendar_event.py verify-event ...`.
+2. If the target account/source is uncertain, run `scripts/calendar_audit.py` first.
+3. If only the calendar name is uncertain, run `scripts/calendar_event.py list-calendars` and pick the exact calendar name from the output.
+4. Put video links in `--location`. Put meeting numbers, interview notes, and buffer details in `--notes`.
+5. If the user asks to reserve buffer time, reflect that in the final blocked time range before writing the event.
+6. Create the event with `scripts/calendar_event.py create-event ...`.
+7. Verify the write with `scripts/calendar_event.py verify-event ...`.
 
 ## Commands
 
@@ -22,6 +44,12 @@ List calendars:
 
 ```bash
 python3 scripts/calendar_event.py list-calendars
+```
+
+Audit calendar sources and defaults:
+
+```bash
+python3 scripts/calendar_audit.py
 ```
 
 Create an event:

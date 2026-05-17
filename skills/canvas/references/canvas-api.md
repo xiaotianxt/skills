@@ -2,8 +2,9 @@
 
 ## Token And Sandbox
 
-- Prefer `op://Private/Canvas/credential` for the Canvas API token.
-- Run Canvas helper commands outside the sandbox when they read the token through 1Password. A sandboxed `op read` can fail with a desktop app connection error even when the app is healthy.
+- Prefer macOS Keychain service `codex.canvas`, account `credential`, for the Canvas API token.
+- Use `keychain-secret get codex.canvas credential` in `CANVAS_TOKEN_COMMAND`.
+- If the Keychain entry is missing, import it once with `keychain-secret import-op codex.canvas credential 'op://Private/Canvas/credential'`.
 - Never print the token or `Authorization: Bearer ...` header.
 
 ## Common Endpoints

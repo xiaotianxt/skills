@@ -1,0 +1,4 @@
+interface:
+  display_name: "Telegram MTProto Session"
+  short_description: "Read Telegram via local MTProto sessions and SQLite history."
+  default_prompt: "Use the local Telegram MTProto session to verify access, sync date-bounded chat history into SQLite, or query cached Telegram messages."

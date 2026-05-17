@@ -1,6 +1,6 @@
 ---
 name: canvas
-description: "Use when Codex needs to work with Canvas LMS / Instructure through the Canvas API: listing courses, finding course IDs, reading syllabi, assignments, modules, pages, files, submissions, grades, rubrics, due dates, or calculating current/final/maximum course grades. Also use when a user asks to submit Canvas assignments or download Canvas course materials, while keeping Canvas tokens in 1Password or environment variables."
+description: "Use when Codex needs to work with Canvas LMS / Instructure through the Canvas API: listing courses, finding course IDs, reading syllabi, assignments, modules, pages, files, submissions, grades, rubrics, due dates, or calculating current/final/maximum course grades. Also use when a user asks to submit Canvas assignments or download Canvas course materials, while keeping Canvas tokens in macOS Keychain or environment variables."
 ---
 
 # Canvas
@@ -14,10 +14,11 @@ Canvas-specific data gathering and grade calculations.
 ## Authentication
 
 - Default CMU Canvas base URL: `https://canvas.cmu.edu`.
-- Prefer a token in 1Password at `op://Private/Canvas/credential`.
-- Use `CANVAS_TOKEN_COMMAND='op read op://Private/Canvas/credential'` or a local script that reads the same secret.
-- Do not print Canvas tokens, auth headers, raw cookies, or 1Password secret values.
-- Commands that call `op read`, `op run`, or any helper that indirectly reads the Canvas token through 1Password should normally be run outside the workspace sandbox with `sandbox_permissions="require_escalated"`. The sandbox can block the 1Password desktop app socket and cause false "couldn't connect to the 1Password desktop app" errors.
+- Prefer a token in macOS Keychain at service `codex.canvas`, account `credential`.
+- Use `CANVAS_TOKEN_COMMAND='keychain-secret get codex.canvas credential'` or a local script that reads the same Keychain entry.
+- One-time migration from 1Password, when needed: `keychain-secret import-op codex.canvas credential 'op://Private/Canvas/credential'`.
+- Do not print Canvas tokens, auth headers, raw cookies, or secret values.
+- Use 1Password only as a scoped import/fallback source when the Keychain entry is missing.
 
 ## Existing Local Helper
 

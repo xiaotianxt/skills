@@ -10,23 +10,33 @@ STAMP="$(date +%Y%m%d-%H%M%S)"
 CODEX_SKILLS=(
   1password
   apple-calendar-event
+  calendar
   canvas
   course-exam-review-planner
   cx
   extract-transparent-signature
+  gh-fix-ci
   gh-review-workflow
+  github
+  helium-browser-mcp
   macos-messages
+  memory
   mimestreamctl
   mon
   panopto-mp4-bulk-download
   rust-systems-style
   ship-ai-native-cli
   tg
+  telegram-mtproto-session
   things3-manager
+  yeet
 )
 
 AGENTS_SKILLS=(
-  agent-browser-hints
+  calendar
+  gh-fix-ci
+  gh-review-workflow
+  github
   gws-calendar
   gws-calendar-agenda
   gws-calendar-insert
@@ -43,6 +53,10 @@ AGENTS_SKILLS=(
   gws-gmail-watch
   gws-shared
   macos-messages
+  helium-browser-mcp
+  memory
+  telegram-mtproto-session
+  yeet
 )
 
 CLAUDE_SKILLS=(

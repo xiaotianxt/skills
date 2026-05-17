@@ -1,4 +1,4 @@
 interface:
   display_name: "Mimestream Control"
-  short_description: "Operate Mimestream mail on macOS."
-  default_prompt: "Use $mimestreamctl to read, reply to, move, and draft emails in Mimestream on macOS."
+  short_description: "Search, inspect, draft, and verify Mimestream mail on macOS."
+  default_prompt: "Use $mimestreamctl to investigate local Mimestream mail, reconstruct threads, draft replies, and verify visible compose windows safely."

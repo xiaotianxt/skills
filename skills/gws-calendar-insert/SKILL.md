@@ -1,6 +1,5 @@
 ---
 name: gws-calendar-insert
-version: 1.0.0
 description: "Google Calendar: Create a new event."
 metadata:
   openclaw:
@@ -20,6 +19,18 @@ create a new event
 
 ```bash
 gws calendar +insert --summary <TEXT> --start <TIME> --end <TIME>
+```
+
+## Target Calendar Rules
+
+- Always state the active Google account and target calendar before writing.
+- In multi-account setups, prefer an explicit `--calendar <calendarId>` instead of relying on `primary`.
+- For this user's current setup, when the user says "my calendar" or gives no target, use `--calendar tianyupeiandy@gmail.com` after `gws auth status` confirms the active user is `tianyupeiandy@gmail.com`.
+- Do not write durable events to Apple Calendar, iCloud, or school calendars as a fallback.
+- If multiple calendars share the same display name, list calendars and use the ID:
+
+```bash
+gws calendar calendarList list --params '{"showHidden":true,"maxResults":250}'
 ```
 
 ## Flags
