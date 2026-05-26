@@ -1,4 +1,0 @@
-interface:
-  display_name: "Extract Transparent Signature"
-  short_description: "Turn photographed signatures into transparent PNG stamps."
-  default_prompt: "Extract a handwritten signature from this image into a clean transparent PNG suitable for placing on a PDF."

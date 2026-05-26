@@ -1,0 +1,38 @@
+{
+  "name": "@xiaotianxt/skills",
+  "version": "0.1.1",
+  "description": "Install xiaotianxt agent skills for Codex, OpenCode-style agents, and Claude.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xiaotianxt/skills.git"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "type": "module",
+  "bin": {
+    "skills": "bin/skills.mjs"
+  },
+  "scripts": {
+    "check:public": "bash scripts/check-public-redactions.sh",
+    "prepack": "npm run check:public",
+    "prepublishOnly": "npm run check:public && npm run smoke",
+    "smoke": "npm run check:public && node bin/skills.mjs list && node bin/skills.mjs bro-browser --dir /tmp/xiaotianxt-skills-smoke --dry-run"
+  },
+  "files": [
+    "bin/",
+    "skills/",
+    "!skills/**/__pycache__/",
+    "!skills/**/*.pyc",
+    "!skills/**/.DS_Store",
+    "README.md",
+    "LICENSE",
+    "SECURITY.md",
+    "SOURCES.md",
+    "EXCLUDED.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  }
+}

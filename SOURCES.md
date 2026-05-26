@@ -6,11 +6,11 @@
 | --- | --- |
 | `1password` | Created in this repo as scoped 1Password import/fallback guidance |
 | `apple-calendar-event` | `~/.codex/skills/apple-calendar-event` |
+| `bro-browser` | Created in this repo for the local bro browser MCP workflow |
 | `calendar` | Created in this repo as personal calendar governance guidance |
 | `canvas` | Created in this repo as the local source of truth |
 | `course-exam-review-planner` | `~/.codex/skills/course-exam-review-planner` |
 | `cx` | `~/dev/cx/SKILL.md` |
-| `extract-transparent-signature` | `~/.codex/skills/extract-transparent-signature` |
 | `gh-fix-ci` | Created in this repo as GitHub Actions PR check workflow guidance |
 | `gh-review-workflow` | `~/.codex/skills/gh-review-workflow` |
 | `github` | Created in this repo as GitHub triage and routing guidance |

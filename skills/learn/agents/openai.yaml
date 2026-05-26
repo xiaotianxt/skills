@@ -1,0 +1,7 @@
+interface:
+  display_name: "Learn"
+  short_description: "Evidence-based study workflows"
+  default_prompt: "Use $learn to create a source-grounded study workspace with progress tracking, retrieval questions, and an error log."
+
+policy:
+  allow_implicit_invocation: true

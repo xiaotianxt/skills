@@ -13,39 +13,64 @@ skills/<skill-name>/SKILL.md
 Optional bundled resources live next to `SKILL.md`, for example `scripts/`,
 `references/`, `assets/`, or `agents/openai.yaml`.
 
-## Install
+## Install One Skill
 
-With the Codex skill installer:
+Install exactly the skill you need. The installer intentionally has no
+"install every skill" mode.
+
+Install from npm:
+
+```bash
+npx -y @xiaotianxt/skills bro-browser
+```
+
+Or install from GitHub:
+
+```bash
+npx -y github:xiaotianxt/skills bro-browser
+```
+
+Per-project examples:
+
+```bash
+npx -y @xiaotianxt/skills bro-browser
+npx -y @xiaotianxt/skills tg
+npx -y @xiaotianxt/skills cx
+npx -y @xiaotianxt/skills mon
+```
+
+For `tg`, prefer the project binary when it is installed:
+
+```bash
+tg skill install
+```
+
+That command renders the local machine-specific skill from tg's dictionary.
+The NPX command installs the public Telegram-worded central skill template.
+
+The default target is Codex: `~/.codex/skills/<skill-name>`. Other targets:
+
+```bash
+npx -y @xiaotianxt/skills bro-browser --target agents
+npx -y @xiaotianxt/skills bro-browser --target claude
+npx -y @xiaotianxt/skills bro-browser --dir ~/.codex/skills
+```
+
+List available packaged skills:
+
+```bash
+npx -y @xiaotianxt/skills list
+```
+
+Restart the target agent after installing or updating a skill.
+
+The older Codex skill installer still works when you want to install directly
+from this GitHub repo:
 
 ```bash
 python3 ~/.codex/skills/.system/skill-installer/scripts/install-skill-from-github.py \
   --repo xiaotianxt/skills \
   --path skills/<skill-name>
-```
-
-Or install multiple skills in one command:
-
-```bash
-python3 ~/.codex/skills/.system/skill-installer/scripts/install-skill-from-github.py \
-  --repo xiaotianxt/skills \
-  --path skills/mimestreamctl skills/tg skills/cx
-```
-
-Restart Codex after installing or updating skills.
-
-## Why `skills list` Shows OpenClaw
-
-The `skills` CLI treats `skills/` as OpenClaw's project skill directory. This
-repo also uses `skills/<skill-name>/SKILL.md` as its canonical source layout, so
-running `npx skills list` from the repo root reports these project skills as
-`Agents: OpenClaw`.
-
-That label is the CLI's detected target-agent path, not the skill author,
-provenance, or runtime requirement. Install explicitly for Codex when using the
-CLI:
-
-```bash
-npx skills add xiaotianxt/skills -g -a codex --all
 ```
 
 ## Development Model

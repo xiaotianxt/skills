@@ -36,8 +36,13 @@ const baseHeaders = {
 };
 
 function parseSseOrJson(text) {
-  const line = text.split('\n').find((value) => value.startsWith('data: '));
-  return line ? JSON.parse(line.slice(6)) : JSON.parse(text);
+  for (const line of text.split('\n')) {
+    if (!line.startsWith('data: ')) continue;
+    const payload = line.slice(6).trim();
+    if (!payload) continue;
+    return JSON.parse(payload);
+  }
+  return JSON.parse(text);
 }
 
 async function rpc(sessionId, id, method, params) {

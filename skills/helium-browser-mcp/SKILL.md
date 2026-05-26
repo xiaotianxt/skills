@@ -81,12 +81,52 @@ Common tools:
 
 - `browsers_context` lists connected Helium browser instances.
 - `tabs_context` lists tabs. Pass `{"all":true,"browserId":"..."}`.
-- `tabs_create` creates a new tab. Pass `{"url":"https://example.com","browserId":"..."}`.
+  After an agent has chosen a tab, pass `tabId` too so context is anchored to
+  that tab's window/group instead of the user's foreground tab.
+- `tabs_create` creates a new background tab by default. Pass
+  `{"url":"https://example.com","browserId":"..."}` and keep the returned
+  numeric tab ID for all later calls. Use `active:true` only when the user
+  explicitly wants the tab brought to the foreground.
+- `navigate` changes an existing tab. Pass
+  `{"url":"https://example.com","tabId":123,"browserId":"..."}` when the
+  current target tab can be overwritten instead of creating another tab.
+- `tabs_close` closes a tab by ID. Use it for task-owned temporary tabs once
+  they are no longer needed.
 - `read_page` reads the accessibility tree. Requires `tabId`.
 - `get_page_text` extracts `document.body.innerText`. Requires `tabId`.
 - `find` searches accessible elements by description. Requires `tabId`.
 - `click_element` clicks a ref from `find`/`read_page`. Requires `tabId`.
 - `javascript_tool` evaluates page JavaScript. Requires `tabId`.
+
+## Stable Tab Targeting
+
+Do not operate by "whatever tab is active" after the first discovery step.
+Helium is the user's real browser and they may continue using it while Codex is
+working.
+
+- Create or identify a target tab first, record both `browserId` and `tabId`,
+  and pass them explicitly to every tab-targeted tool.
+- For monitoring, call `read_network_requests`, `read_console_messages`, and
+  `get_response_body` with the pinned `tabId`.
+- When refreshing tab context during a task, use
+  `tabs_context {"all":true,"tabId":123,"browserId":"..."}` so the listing is
+  resolved relative to the pinned tab, not the user's current foreground tab.
+- Avoid `tabs_activate` unless foreground focus is part of the user's request.
+  CDP-backed tools such as `javascript_tool`, `read_page`, and monitoring work
+  on background tabs.
+
+## Tab Lifecycle
+
+Keep the user's browser tidy.
+
+- Track every tab created for the task. Before finishing, close task-owned tabs
+  with `tabs_close` unless the user asked to keep them open or the tab now
+  contains useful state the user expects to inspect.
+- Prefer reusing the current target tab with `navigate` when moving to the next
+  website and the current page can be safely overwritten. Do this for agent-
+  created scratch tabs and for user-approved disposable pages.
+- Do not overwrite or close tabs that existed before the task unless the user
+  explicitly says the current page can be reused or closed.
 
 For a safe smoke test:
 

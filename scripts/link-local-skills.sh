@@ -6,15 +6,16 @@ CODEX_SKILLS_DIR="${CODEX_SKILLS_DIR:-$HOME/.codex/skills}"
 AGENTS_SKILLS_DIR="${AGENTS_SKILLS_DIR:-$HOME/.agents/skills}"
 CLAUDE_SKILLS_DIR="${CLAUDE_SKILLS_DIR:-$HOME/.claude/skills}"
 STAMP="$(date +%Y%m%d-%H%M%S)"
+MISSING_SOURCES=()
 
 CODEX_SKILLS=(
   1password
   apple-calendar-event
+  bro-browser
   calendar
   canvas
   course-exam-review-planner
   cx
-  extract-transparent-signature
   gh-fix-ci
   gh-review-workflow
   github
@@ -33,6 +34,7 @@ CODEX_SKILLS=(
 )
 
 AGENTS_SKILLS=(
+  bro-browser
   calendar
   gh-fix-ci
   gh-review-workflow
@@ -63,7 +65,6 @@ CLAUDE_SKILLS=(
   apple-calendar-event
   course-exam-review-planner
   cx
-  extract-transparent-signature
   gh-review-workflow
   macos-messages
   mimestreamctl
@@ -92,7 +93,8 @@ link_skill() {
 
   if [[ ! -d "$src" ]]; then
     printf 'missing source: %s\n' "$src" >&2
-    return 1
+    MISSING_SOURCES+=("$src")
+    return 0
   fi
 
   mkdir -p "$install_dir"
@@ -127,6 +129,12 @@ main() {
   for skill in "${CLAUDE_SKILLS[@]}"; do
     link_skill "$CLAUDE_SKILLS_DIR" "$skill"
   done
+
+  if (( ${#MISSING_SOURCES[@]} > 0 )); then
+    printf '\ncompleted with missing skill source(s):\n' >&2
+    printf '  %s\n' "${MISSING_SOURCES[@]}" >&2
+    return 1
+  fi
 }
 
 main "$@"

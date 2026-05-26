@@ -1,0 +1,4 @@
+interface:
+  display_name: "Bro Browser"
+  short_description: "Control local browser workflows with bro"
+  default_prompt: "Use $bro-browser to inspect a page, extract URLs, or run a browser flow through local bro."

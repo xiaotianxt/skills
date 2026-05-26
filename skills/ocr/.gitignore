@@ -1,0 +1,6 @@
+.venv/
+__pycache__/
+*.pyc
+*_ocr_*/
+mineru_result/
+mineru_result.zip

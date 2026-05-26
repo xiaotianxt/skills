@@ -1,0 +1,4 @@
+interface:
+  display_name: "OCR"
+  short_description: "Local and MinerU document OCR routing"
+  default_prompt: "Use $ocr to extract text or Markdown from this PDF using the best local or MinerU workflow."
