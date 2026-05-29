@@ -75,6 +75,7 @@ Choose the highest-level bro tool that matches the user outcome:
 - Extract the current/open page: call `browser.current.extract` first. Do not spend separate calls on `browsers_context` and `tabs_context` unless the current page is ambiguous or extraction fails.
 - Extract many independent URLs: call `browser.batch.extract`.
 - Read text from many URLs when links and diagnostics are not needed: call `browser.batch.run`.
+- Run the same interaction on many independent URLs: call `browser.batch.flow` with `inputs`, shared `steps`, bounded `concurrency`, and `cleanup:true`. Use this instead of starting many separate flow sessions when every page needs the same click/wait/eval/read workflow, such as opening review panels on a product set.
 - Interact with one page over multiple steps: use `browser.flow.start`, `browser.flow.act`, `browser.flow.observe`, then `browser.flow.finish`.
 - Inspect or operate on an existing tab: call `browsers_context`, then `tabs_context`, pin `browserId` and `tabId`, and use raw tab tools.
 - Debug a page or local app: create or pin a tab, then use `read_console_messages`, `read_network_requests`, and `get_response_body`.
@@ -97,6 +98,7 @@ Use compact extraction defaults. Leave `includeLinks:false` unless URLs are part
 scripts/bro-call.mjs browser.extract '{"url":"https://example.com","active":false,"cleanup":true,"maxChars":8000}'
 scripts/bro-call.mjs browser.current.extract '{"maxChars":8000}'
 scripts/bro-call.mjs browser.batch.extract '{"urls":["https://example.com/a","https://example.com/b"],"concurrency":4,"maxChars":6000}'
+scripts/bro-call.mjs browser.batch.flow '{"inputs":[{"id":"a","url":"https://example.com/a"},{"id":"b","url":"https://example.com/b"}],"steps":[{"type":"wait","ms":1000},{"type":"eval","code":"document.body.innerText"}],"concurrency":4,"cleanup":true}' --json
 scripts/bro-call.mjs browser.flow.start '{"url":"https://example.com","active":false}'
 scripts/bro-call.mjs browser.flow.observe '{"sessionId":"SESSION_ID","mode":"text"}'
 scripts/bro-call.mjs browser.flow.finish '{"sessionId":"SESSION_ID","cleanup":true}'

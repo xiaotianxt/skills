@@ -50,6 +50,32 @@ scripts/bro-call.mjs browser.batch.extract '{"inputs":[{"id":"a","url":"https://
 
 Prefer `inputs` with stable IDs when the answer must cite which URL produced each result. Add `includeLinks:true` only when URLs are part of the answer or the next crawl step. Keep `cleanup:true` unless the user needs to inspect the opened tabs.
 
+## Repeated Interaction Across Known URLs
+
+Use `browser.batch.flow` when each independent URL needs the same ordered interaction before extraction. This avoids creating, acting on, and finishing many separate flow sessions from the agent side.
+
+Example: open product pages, wait for render, click a common reviews button by JavaScript, wait for the modal, and return a compact structured result from each page.
+
+```bash
+scripts/bro-call.mjs browser.batch.flow '{
+  "inputs": [
+    {"id": "item-a", "url": "https://example.com/a"},
+    {"id": "item-b", "url": "https://example.com/b"}
+  ],
+  "steps": [
+    {"type": "wait", "ms": 2000},
+    {"type": "eval", "code": "(() => { const button = [...document.querySelectorAll(\"button\")].find((node) => /reviews/i.test(node.innerText || node.getAttribute(\"aria-label\") || \"\")); if (button) button.click(); return Boolean(button); })()"},
+    {"type": "wait", "ms": 1000},
+    {"type": "eval", "code": "(() => ({ title: document.title, text: document.body.innerText.slice(0, 4000) }))()"}
+  ],
+  "concurrency": 6,
+  "timeoutMs": 15000,
+  "cleanup": true
+}' --json
+```
+
+Keep the `steps` generic and site-local to the task. Do not put site-specific scraping policy into bro itself.
+
 ## Sequential Page Interaction
 
 Use a flow when a page needs clicks, filling, waiting, or navigation state.

@@ -32,6 +32,15 @@ Prefer facade tools before raw extension tools. They encode bro's cleanup, bound
 - Provide either `urls` or `inputs`; do not provide both.
 - Defaults: `concurrency:6`, `timeoutMs:12000`, `cleanup:true`, `active:false`.
 
+`browser.batch.flow`
+
+- Use for multiple independent URLs that need the same ordered interaction, such as opening the same modal on every product page and reading structured page data.
+- Provide either `urls` or `inputs`; do not provide both.
+- Required: `steps`.
+- Step types are the same as `browser.flow.act`: `goto`, `eval`, `click`, `fill`, `wait`, and `read_text`.
+- Defaults: `concurrency:6`, `timeoutMs:12000` per URL, `cleanup:true`, `active:false`.
+- Prefer this over many separate `browser.flow.start` + `browser.flow.act` + `browser.flow.finish` calls when the per-page workflow is identical.
+
 `browser.flow.start`
 
 - Use for a single stateful page interaction.
@@ -88,6 +97,7 @@ scripts/bro-call.mjs <tool-name> [json-arguments]
 scripts/bro-call.mjs --list
 scripts/bro-call.mjs --status
 scripts/bro-call.mjs browser.extract '{"url":"https://example.com"}' --json
+scripts/bro-call.mjs browser.batch.flow '{"urls":["https://example.com/a","https://example.com/b"],"steps":[{"type":"wait","ms":1000},{"type":"eval","code":"document.title"}],"concurrency":4}' --json
 ```
 
 Use `--json` when you need `sessionId`, structured diagnostics, or exact result fields.
