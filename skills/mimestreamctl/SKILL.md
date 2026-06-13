@@ -106,9 +106,10 @@ If subject/body/window do not match, stop and re-verify the Mimestream selection
   --body-file /tmp/body.txt
 ```
 
-If `compose` fails with application-name resolution but Mimestream is installed:
+`compose` opens drafts with `open -a Mimestream` and falls back to `open -b com.mimestream.Mimestream` when macOS cannot resolve the app name. If both routes fail but Mimestream is visibly installed, inspect the generated URL and open it manually:
 
 ```bash
+~/.codex/skills/mimestreamctl/scripts/mimestreamctl compose --dry-run ...
 open -b com.mimestream.Mimestream "mailto:..."
 ```
 
@@ -121,7 +122,7 @@ Before saying the draft is ready, verify:
 - No placeholders or private tokens remain.
 - The message is still a draft.
 
-Use AX text when available; otherwise use a screenshot or visible window inspection. A zero exit code only means the open request returned.
+Use AX text when available; otherwise use a screenshot or visible window inspection. A zero exit code only means the open request returned. `selection` may still report the previously selected main-window message after a compose window opens; verify the draft window itself, not just the message selection.
 
 ### Reply Draft
 
@@ -158,7 +159,7 @@ For bulk unsubscribe or trash, dry-run first, save exact ids, inspect summaries,
 
 - If a message appears in `mail search` but body extraction is poor, use `mail get --include-html` and convert HTML to visible text.
 - If local cache evidence conflicts with server state, use Gmail API skills for the authoritative answer.
-- If UI automation fails, bring Mimestream forward and retry once; then fall back to bundle-id `open` or visible screenshot verification.
+- If UI automation fails, bring Mimestream forward and retry once. For new drafts, `compose` already retries bundle-id `open`; if verification still fails, inspect the front window title with System Events or use visible screenshot verification.
 - If recipient choice depends on previous successful workflows, use `sent-search` and support replies, not memory.
 - Never edit Mimestream SQLite directly.
 
