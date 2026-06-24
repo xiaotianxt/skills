@@ -19,6 +19,25 @@ bro is the local Rust MCP server in `/Users/yupeit/dev/bro`. It exposes:
 
 Use `127.0.0.1`, not `localhost`, to avoid IPv6 mismatch with local services.
 
+## Chrome Connector Parity
+
+Prefer bro for parallel browser work. It has first-class batch tools with
+bounded concurrency:
+
+- `browser.batch.extract`
+- `browser.batch.run`
+- `browser.batch.flow`
+
+For tasks that need the official Chrome connector style lifecycle, bro exposes
+matching session primitives:
+
+- `session_name`: name a browser automation session and update its tab group.
+- `tabs_claim`: claim an already-open user tab without making it agent-owned.
+- `tabs_finalize`: close owned tabs unless they are explicitly kept.
+
+Use `/Users/yupeit/dev/bro/docs/chrome-connector-parity.md` when you need a
+detailed feature comparison against the official Chrome connector.
+
 ## Fast Path First
 
 For a known URL or a user request that can be satisfied by opening one page and reading it, start with the highest-level one-shot extraction before doing discovery:
@@ -67,6 +86,27 @@ cargo run --manifest-path /Users/yupeit/dev/bro/Cargo.toml -- serve
 
 If no extension is connected, load `/Users/yupeit/dev/bro/extension/dist` as an unpacked extension in a Chromium-family browser, open the extension options, set server URL to `ws://127.0.0.1:3500/ws`, and paste the token from `~/.bro/settings.json`. Do not print the token.
 
+## OpenCode Integration
+
+OpenCode can use the stdio proxy so its config does not store the bro bearer
+token:
+
+```json
+"mcp": {
+  "bro": {
+    "type": "local",
+    "command": [
+      "/Users/yupeit/dev/skills/skills/bro-browser/scripts/bro-stdio-proxy.mjs"
+    ],
+    "enabled": true,
+    "timeout": 10000
+  }
+}
+```
+
+The proxy reads `~/.bro/settings.json` locally and forwards to
+`http://127.0.0.1:3500/mcp`.
+
 ## Tool Choice
 
 Choose the highest-level bro tool that matches the user outcome:
@@ -81,6 +121,22 @@ Choose the highest-level bro tool that matches the user outcome:
 - Debug a page or local app: create or pin a tab, then use `read_console_messages`, `read_network_requests`, and `get_response_body`.
 
 Use compact extraction defaults. Leave `includeLinks:false` unless URLs are part of the answer or the next crawl step. Leave `includeA11y:false` unless DOM extraction is partial/empty or you need controls and labels. Read `references/workflows.md` for concrete workflow recipes and `references/tool-map.md` for tool arguments and fallback rules.
+
+## Session Lifecycle
+
+For multi-tab work that is not fully handled by a batch facade:
+
+1. Pick a stable `sessionId` for the task.
+2. Call `session_name` with a short human-readable name.
+3. Create task-owned tabs with `tabs_create` or `tabs_create_mcp` and pass that
+   `sessionId`.
+4. Claim user-opened tabs with `tabs_claim` and the same `sessionId`.
+5. Call `tabs_finalize` once at the end. Use `keep` only for deliverable or
+   handoff tabs.
+
+Batch facade tools already own and clean up their tabs internally, so do not
+wrap ordinary `browser.batch.*` calls in manual lifecycle steps unless a task
+needs live tabs afterward.
 
 ## Safety Rules
 

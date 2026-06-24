@@ -108,6 +108,38 @@ scripts/bro-call.mjs browser.flow.finish '{"sessionId":"SESSION_ID","cleanup":tr
 
 Use `mode:"a11y"` when visible text is insufficient to identify controls. Ask for explicit confirmation before a flow submits data or changes user state.
 
+## Multi-Tab Session Lifecycle
+
+Use this when the task needs several live tabs, when you are operating on
+existing user tabs, or when a tab should remain open for handoff or delivery.
+Do not add this wrapper around ordinary `browser.batch.*` extraction; the batch
+facades already manage owned tabs and cleanup.
+
+1. Pick a task-local session ID and name it:
+
+```bash
+scripts/bro-call.mjs session_name '{"sessionId":"audit-2026-06-24","name":"Audit dashboard"}'
+```
+
+2. Create task-owned tabs with that session ID:
+
+```bash
+scripts/bro-call.mjs tabs_create '{"sessionId":"audit-2026-06-24","url":"https://example.com","active":false}' --json
+```
+
+3. Claim user-opened tabs that should be controlled but not auto-closed:
+
+```bash
+scripts/bro-call.mjs tabs_claim '{"sessionId":"audit-2026-06-24","tabId":123}'
+```
+
+4. Finalize once. Owned tabs are closed unless listed in `keep`; claimed tabs
+are released and left open.
+
+```bash
+scripts/bro-call.mjs tabs_finalize '{"sessionId":"audit-2026-06-24","keep":[{"tabId":456,"status":"handoff","reason":"waiting for user login"}]}'
+```
+
 ## Existing Tab Inspection
 
 Use this when the user asks about an already open tab or says to use their current logged-in browser.

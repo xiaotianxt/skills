@@ -70,7 +70,10 @@ Use raw tools when operating on an existing tab, debugging, uploading, or using 
 
 - `browsers_context`: list connected browser instances and browser IDs.
 - `tabs_context`: list tabs; pass `all:true` for a full listing.
-- `tabs_create`: create a tab; default to `active:false`.
+- `session_name`: name a multi-tab automation session.
+- `tabs_claim`: attach an existing tab to a session without marking it owned.
+- `tabs_finalize`: close owned session tabs not listed in `keep`.
+- `tabs_create`: create a tab; default to `active:false`; pass `sessionId` to make it session-owned.
 - `tabs_close`: close a known tab ID.
 - `navigate`: navigate a known tab.
 - `get_page_text`: extract `document.body.innerText` from a known tab; pass `maxChars` when only a small slice is needed.
