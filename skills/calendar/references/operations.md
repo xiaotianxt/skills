@@ -8,7 +8,7 @@
 - Read-only inventory and governance review
 - Visibility, labels, and real names
 - Event creation
-- Apple Calendar audit
+- Apple Calendar audit and explicit writes
 - School and legacy migration
 - Commands to avoid
 - Scope expectations and rollback
@@ -43,8 +43,8 @@ gws calendar calendarList list --params '{"showHidden":true,"maxResults":250}' >
 python3 /Users/yupeit/dev/skills/skills/calendar/scripts/calendar_list_review.py \
   --calendar-list "$backup_dir/calendar-list-before.json" \
   --format tsv > "$backup_dir/calendar-list-review.tsv"
-cd /Users/yupeit/dev/skills/skills/apple-calendar-event
-python3 scripts/calendar_audit.py --json > "$backup_dir/apple-calendar-audit-before.json"
+python3 /Users/yupeit/dev/skills/skills/calendar/scripts/calendar_audit.py --json \
+  > "$backup_dir/apple-calendar-audit-before.json"
 ```
 
 ## Multi-Account gws Profiles
@@ -247,21 +247,49 @@ Avoid these for default personal writes:
 # Do not write to yupeit@andrew.cmu.edu, iCloud, or another Google account unless explicitly requested.
 ```
 
-## Apple Calendar Audit
+## Apple Calendar Audit And Explicit Writes
+
+Prefer Google Calendar for durable personal writes. Use these local helpers only when the user explicitly asks for Apple Calendar or Calendar.app.
+
+Audit local sources, duplicate names, and the default calendar:
 
 ```bash
-cd /Users/yupeit/dev/skills/skills/apple-calendar-event
-python3 scripts/calendar_audit.py
-python3 scripts/calendar_audit.py --json
+python3 /Users/yupeit/dev/skills/skills/calendar/scripts/calendar_audit.py
+python3 /Users/yupeit/dev/skills/skills/calendar/scripts/calendar_audit.py --json
 ```
 
-Use this to detect:
+The audit detects:
 
 - duplicate display names
 - Calendar.app default policy and default UUID
 - store/account ownership such as Google, iCloud, school CalDAV, subscribed calendars, Reminders, and system sources
 
-Do not edit `Calendar.sqlitedb`.
+Treat `Calendar.sqlitedb` as a read-only cache. Never edit it directly. Do not trust Calendar.app's default calendar or identify a write target by display name alone when duplicate names exist.
+
+List exact calendar names when only the target name is uncertain:
+
+```bash
+python3 /Users/yupeit/dev/skills/skills/calendar/scripts/calendar_event.py list-calendars
+```
+
+Before a write, confirm the title, exact target calendar, local date, start, and end. Put meeting links in `--location` and operational detail in `--notes`. Create the event, then verify it:
+
+```bash
+python3 /Users/yupeit/dev/skills/skills/calendar/scripts/calendar_event.py create-event \
+  --calendar "CALENDAR_NAME" \
+  --title "TITLE" \
+  --start "YYYY-MM-DD HH:MM" \
+  --end "YYYY-MM-DD HH:MM" \
+  --location "LOCATION_OR_URL" \
+  --notes "NOTES"
+
+python3 /Users/yupeit/dev/skills/skills/calendar/scripts/calendar_event.py verify-event \
+  --calendar "CALENDAR_NAME" \
+  --title "TITLE" \
+  --start "YYYY-MM-DD HH:MM"
+```
+
+Expect macOS to prompt for Calendar and Automation permission the first time `osascript` runs. Verify after every write; if verification fails, inspect the target name and source before retrying.
 
 ## School Migration Planning
 

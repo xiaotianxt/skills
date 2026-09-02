@@ -59,8 +59,8 @@ rules, Panopto download mechanics, or Things URL details.
   selected messages, drafts, menus, mailbox actions, and app-local state.
 - `gws-gmail*` owns Gmail API work through the `gws` CLI.
 - `calendar` owns calendar source-of-truth decisions, cleanup strategy,
-  migration planning, and safe write-target choice.
-- `apple-calendar-event` owns local macOS Calendar.app writes.
+  migration planning, safe write-target choice, and local macOS Calendar.app
+  audits and explicit writes through its bundled helpers.
 - `gws-calendar*` owns Google Calendar API work through the `gws` CLI.
 
 When the user names a local app or current selection, prefer the app-control

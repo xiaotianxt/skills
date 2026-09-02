@@ -1,4 +1,0 @@
-interface:
-  display_name: "Apple Calendar Event"
-  short_description: "Audit, create, and verify macOS Calendar.app events."
-  default_prompt: "Use this skill to audit local Calendar.app sources/defaults or create and verify an Apple Calendar event in a specific calendar. Prefer Google Calendar for durable writes unless Apple Calendar is explicitly requested."

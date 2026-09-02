@@ -8,7 +8,6 @@ are installed separately via skills.sh and not vendored in this repo.
 | Skill | Source |
 | --- | --- |
 | `1password` | Created in this repo as scoped 1Password import/fallback guidance |
-| `apple-calendar-event` | Created in this repo for local Calendar.app audits and explicit writes |
 | `bro-browser` | Created in this repo for the local bro browser MCP workflow |
 | `calendar` | Created in this repo as personal calendar governance guidance |
 | `canvas` | Created in this repo as the local source of truth |
@@ -53,6 +52,7 @@ here:
 
 ## Retired
 
+- `apple-calendar-event` was merged into `calendar`, which now owns the bundled local Calendar.app audit and explicit-write helpers.
 - `helium-browser-mcp` was replaced by the narrower `bro-browser` skill.
 - `web-artifacts-builder` is upstream-owned and should be installed from
   `anthropics/skills` when needed.

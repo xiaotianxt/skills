@@ -7,7 +7,7 @@ description: Govern and maintain the user's personal calendar system across Goog
 
 ## Purpose
 
-Use this as the top-level calendar governance skill. It decides source of truth, write targets, audit depth, and safety level before delegating to lower-level skills such as `gws-calendar`, `gws-calendar-insert`, `gws-calendar-agenda`, and `apple-calendar-event`.
+Use this as the single calendar entrypoint. It decides source of truth, write targets, audit depth, and safety level before delegating Google operations to lower-level `gws-calendar` skills or using its bundled helpers for local Apple Calendar.app work.
 
 ## First Principles
 
@@ -100,9 +100,19 @@ Prefer view-level changes: `selected`, `hidden`, then `summaryOverride`. Use rea
 
 Make an inventory first, usually future actionable events only. Compare against the primary calendar by `iCalUID`, normalized title, start time, and location. Treat dedupe previews as advisory: recurrence expansion, changed titles, changed locations, time zones, guests, Meet links, attachments, reminders, privacy, and organizer semantics need explicit review before copying. Keep the source visible but unselected during migration; do not delete or unsubscribe until the user confirms the migrated state.
 
-### Investigate Apple Calendar.app
+### Investigate Or Write Apple Calendar.app
 
-Use `apple-calendar-event` for local audit and explicit Apple writes only. Run its audit before any Apple write when source or duplicate names matter. Never edit `Calendar.sqlitedb`; treat it as a read-only cache.
+Use the bundled `scripts/calendar_audit.py` and `scripts/calendar_event.py` helpers. Never edit `Calendar.sqlitedb`; treat it as a read-only cache.
+
+For an Apple write:
+
+1. Require the user to explicitly request Apple Calendar or Calendar.app.
+2. Confirm the title, target calendar name, local date, start, and end.
+3. Run `scripts/calendar_audit.py` when source ownership or duplicate names matter; otherwise list exact names with `scripts/calendar_event.py list-calendars` when only the target name is uncertain.
+4. Put meeting links in location and operational detail in notes.
+5. Create with `scripts/calendar_event.py create-event`, then verify with `scripts/calendar_event.py verify-event`.
+
+Read `references/operations.md` for exact commands.
 
 ### Delete or Unsubscribe
 
@@ -127,7 +137,7 @@ prefixing every `gws` command with the intended profile as described above:
 gws auth status
 gws calendar calendarList list --params '{"showHidden":true,"maxResults":250}' > calendar-list-before.json
 python3 /Users/yupeit/dev/skills/skills/calendar/scripts/calendar_list_review.py --calendar-list calendar-list-before.json --format tsv
-cd /Users/yupeit/dev/skills/skills/apple-calendar-event && python3 scripts/calendar_audit.py --json
+python3 /Users/yupeit/dev/skills/skills/calendar/scripts/calendar_audit.py --json
 ```
 
 Interpretation rules:
@@ -204,12 +214,12 @@ Current known source-of-truth assumptions:
 - School transition source: `yupeit@andrew.cmu.edu`.
 - Apple Calendar.app: view/legacy layer, not default write target.
 
-## Lower-Level Skills
+## Execution Layers
 
 - Use `gws-calendar` for Calendar API discovery, list, patch, event operations, and low-level Google Calendar resources.
 - Use `gws-calendar-insert` for straightforward Google event creation.
 - Use `gws-calendar-agenda` for upcoming event views.
-- Use `apple-calendar-event` for local Apple Calendar.app audits and explicit Apple Calendar event writes.
+- Use this skill's bundled scripts for local Apple Calendar.app audits and explicit Apple Calendar event writes.
 
 ## OAuth Scope Expectations
 
