@@ -30,6 +30,7 @@ Use this skill for Things 3 automation on macOS.
 ## Workflow
 
 - Prefer `--dry-run` first for large batch imports.
+- Map a task's available/start date to `when` and its due date to `deadline`. If the source only provides a due date and no reliable start date can be found, set `when` to the current local date unless the user asks for a different fallback.
 - Use `json --data-file ...` for big imports with projects/headings/to-dos.
 - For the Things `json` command, the file must contain a top-level JSON array of Things objects, for example `[{"type":"project","attributes":{...}}]`. Do not wrap it in an object like `{"items":[...]}`; Things may accept the URL but silently create nothing.
 - Use `add-todo` or `add-project` for one-off items.

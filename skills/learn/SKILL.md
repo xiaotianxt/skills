@@ -94,7 +94,7 @@ For each section, chapter, lecture, or case:
 4. Include at least one concrete example or system mapping.
 5. Name common wrong interpretations before the quiz.
 6. Ask verification questions that require retrieval and transfer, not just recognition.
-7. Stop and wait for the learner's answer.
+7. Stop and wait for the learner's answer in the chat. Do not imply that the agent is watching a file or background channel unless the user explicitly asked for that workflow.
 8. Score answers using the local rubric.
 9. Update `tasklog.typ`.
 10. Add or update `errorlog.typ` for every weak answer.
