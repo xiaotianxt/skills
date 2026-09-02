@@ -22,30 +22,37 @@ Canvas-specific data gathering and grade calculations.
 
 ## Existing Local Helper
 
-When available, reuse:
+Reuse the existing helper, but locate it instead of assuming a fixed Documents
+path because the course-materials tree may move:
 
-`/Users/yupeit/Documents/20-29 Academics & Research/20 CMU Course Materials/84-792 Policy Seminar II/canvas-api-research/canvas_api.py`
+```bash
+CANVAS_HELPER="$(rg --files "$HOME/Documents" 2>/dev/null | rg '/canvas-api-research/canvas_api\.py$' | head -n 1)"
+test -n "$CANVAS_HELPER"
+```
+
+Always override the helper's legacy token command with the Keychain command.
 
 Useful commands:
 
 ```bash
-python3 canvas_api.py whoami
-python3 canvas_api.py courses
-python3 canvas_api.py raw-get /api/v1/users/self/courses --param 'include[]=total_scores' --param 'include[]=term'
-python3 canvas_api.py raw-get /api/v1/courses/COURSE_ID/assignment_groups --param 'include[]=assignments' --param 'include[]=submission'
-python3 canvas_api.py sync-course COURSE_ID --out OUT_DIR
+CANVAS_TOKEN_COMMAND='keychain-secret get codex.canvas credential' python3 "$CANVAS_HELPER" whoami
+CANVAS_TOKEN_COMMAND='keychain-secret get codex.canvas credential' python3 "$CANVAS_HELPER" courses --include-completed
+CANVAS_TOKEN_COMMAND='keychain-secret get codex.canvas credential' python3 "$CANVAS_HELPER" raw-get /api/v1/users/self/courses --param per_page=100 --param 'include[]=total_scores' --param 'include[]=term'
+CANVAS_TOKEN_COMMAND='keychain-secret get codex.canvas credential' python3 "$CANVAS_HELPER" raw-get /api/v1/courses/COURSE_ID/assignment_groups --param 'include[]=assignments' --param 'include[]=submission'
+CANVAS_TOKEN_COMMAND='keychain-secret get codex.canvas credential' python3 "$CANVAS_HELPER" sync-course COURSE_ID --out OUT_DIR
 ```
 
 Quote parameters containing `[]` in zsh, such as `'include[]=total_scores'`, or zsh will treat them as glob patterns.
 
 ## Workflow
 
-1. Identify the course with `/api/v1/users/self/courses`, including `term` and `total_scores`.
-2. Fetch course details with `include[]=syllabus_body,total_scores` and verify whether `apply_assignment_group_weights` is true.
-3. Fetch assignment groups with `include[]=assignments` and `include[]=submission`.
-4. Summarize large JSON locally before showing results. Avoid dumping assignment descriptions, discussion bodies, attachment URLs, or secure params unless the user explicitly needs them.
-5. For grade questions, inspect the syllabus PDF or page for grade cutoffs, rounding rules, drop rules, late penalties, and optional or extra-credit treatment.
-6. Reconcile Canvas enrollment scores with local calculations. Canvas may apply muted grades, drop rules, optional assignments, hidden rules, excused submissions, or grading-period settings.
+1. Identify the course with the paginated `/api/v1/users/self/courses`, including `term` and `total_scores`. Start without `enrollment_state` or `state[]` filters when searching across terms.
+2. Canvas may return enrolled-course stubs whose `name` and `course_code` are null. Hydrate every such ID with `GET /api/v1/courses/:id` and, if useful, `/api/v1/courses/:id/sections`. A `403` leaves the ID inaccessible/unresolved; it does not prove the requested course is absent.
+3. Fetch course details with `include[]=syllabus_body,total_scores` and verify whether `apply_assignment_group_weights` is true.
+4. Fetch assignment groups with `include[]=assignments` and `include[]=submission`.
+5. Summarize large JSON locally before showing results. Avoid dumping assignment descriptions, discussion bodies, attachment URLs, or secure params unless the user explicitly needs them.
+6. For grade questions, inspect the syllabus PDF or page for grade cutoffs, rounding rules, drop rules, late penalties, and optional or extra-credit treatment.
+7. Reconcile Canvas enrollment scores with local calculations. Canvas may apply muted grades, drop rules, optional assignments, hidden rules, excused submissions, or grading-period settings.
 
 ## Grade Calculation Notes
 

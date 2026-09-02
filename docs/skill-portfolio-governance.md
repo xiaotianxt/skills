@@ -42,6 +42,10 @@ their responsibilities.
   task creation.
 - `canvas` owns Canvas LMS data access: courses, assignments, submissions,
   grades, files, syllabus pages, and Canvas-specific grade calculations.
+- `edstem-course-materials` owns read-only, incremental archives of downloadable
+  EdStem lesson and resource files.
+- `gradescope-reader` owns read-only inspection of authenticated Gradescope
+  assignments, submissions, scores, and released feedback.
 - `panopto-mp4-bulk-download` owns lecture video URL extraction and bulk media
   download.
 - `things3-manager` owns writing the resulting plan into Things 3.

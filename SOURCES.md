@@ -13,9 +13,11 @@ are installed separately via skills.sh and not vendored in this repo.
 | `calendar` | Created in this repo as personal calendar governance guidance |
 | `canvas` | Created in this repo as the local source of truth |
 | `course-exam-review-planner` | Created in this repo as the academic review-planning workflow |
+| `edstem-course-materials` | Created in this repo for authenticated EdStem course-material archives |
 | `gh-fix-ci` | Created in this repo as GitHub Actions PR check workflow guidance |
 | `gh-review-workflow` | Created in this repo as local GitHub review workflow guidance (originally collected from `~/.codex/skills/gh-review-workflow`) |
 | `github` | Created in this repo as GitHub triage and routing guidance |
+| `gradescope-reader` | Created in this repo for read-only inspection of authenticated Gradescope pages |
 | `gws-shared` | Created in this repo as shared auth and safety guidance for upstream `gws-*` skills |
 | `learn` | Created in this repo as evidence-based learning workflow guidance |
 | `macos-messages` | Created in this repo as local Messages history guidance |

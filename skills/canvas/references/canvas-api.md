@@ -26,6 +26,17 @@
 - Announcements: `GET /api/v1/announcements?context_codes[]=course_:course_id`
 - Discussions: `GET /api/v1/courses/:course_id/discussion_topics`
 
+## Course Discovery
+
+Do not conclude that a course is absent from one filtered course-list call.
+
+1. Paginate `/api/v1/users/self/courses` without `enrollment_state` or `state[]` filters and include `term` and `total_scores`.
+2. Match against `name`, `course_code`, and `sis_course_id` when present.
+3. Canvas can return enrolled-course stubs with an ID but null identifying fields. Fetch each stub through `/api/v1/courses/:course_id`; use `/sections` if the course name remains ambiguous.
+4. Record a direct-detail `403` as inaccessible/unresolved. It may be a restricted past or future course, so it is not evidence that the requested course does not exist.
+
+The local helper's `raw-get` command does not paginate. Its `courses` command does, but applies state filters. Use the latter for the normal case and an unfiltered paginated API call when course discovery must be exhaustive; `per_page=100` alone is exhaustive only when there are at most 100 courses.
+
 Always quote zsh args containing brackets:
 
 ```bash
