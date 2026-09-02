@@ -10,7 +10,7 @@ Use these roles when adding, reviewing, or refactoring skills:
 
 | Role | Purpose | Examples |
 | --- | --- | --- |
-| Governor | Sets taste, risk posture, and review standards across tasks. | `rust-systems-style` |
+| Governor | Sets taste, risk posture, and review standards across tasks. | `design-decisions`, `rust-systems-style` |
 | Product workflow | Turns a broad user goal into a repeatable multi-step outcome. | `ship-ai-native-cli`, `course-exam-review-planner` |
 | Tool control | Operates a specific local app, CLI, API, or data source. | `tg`, `cx`, `mon`, `mimestreamctl`, `canvas`, `things3-manager`, `1password` |
 | Generated tool family | Mirrors a large API surface through narrow generated commands. | `gws-*`, `gws-shared` |
@@ -69,13 +69,17 @@ skill. When the user names a Google Workspace account/API workflow, prefer the
 
 ### Product And Systems Work
 
+- `design-decisions` owns cross-domain decision structure: decision contracts,
+  viable alternatives, common criteria, evidence, explicit rationale, and
+  revisit triggers. Domain skills still own the facts and execution details.
 - `ship-ai-native-cli` owns product shaping, release flow, Homebrew, README,
   skill integration, and installed-binary verification for new CLI products.
 - `rust-systems-style` owns Rust/system-code judgment: invariants, failure
   surfaces, unsafe boundaries, dependency restraint, vocabulary leakage, and
   verification standards.
 
-For a Rust CLI product, use both: product workflow first for scope, Rust
+For a Rust CLI product, use all applicable layers: product workflow for scope,
+`design-decisions` for consequential choices among alternatives, and the Rust
 governor continuously for implementation taste.
 
 ### Browser Work

@@ -13,6 +13,7 @@ are installed separately via skills.sh and not vendored in this repo.
 | `calendar` | Created in this repo as personal calendar governance guidance |
 | `canvas` | Created in this repo as the local source of truth |
 | `course-exam-review-planner` | Created in this repo as the academic review-planning workflow |
+| `design-decisions` | Created in this repo as structured design-decision guidance, distilled from CMU 15-410's trade-off matrix method |
 | `edstem-course-materials` | Created in this repo for authenticated EdStem course-material archives |
 | `gh-fix-ci` | Created in this repo as GitHub Actions PR check workflow guidance |
 | `gh-review-workflow` | Created in this repo as local GitHub review workflow guidance (originally collected from `~/.codex/skills/gh-review-workflow`) |
