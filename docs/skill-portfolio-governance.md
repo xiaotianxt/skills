@@ -78,8 +78,8 @@ governor continuously for implementation taste.
 
 - Use the primary browser automation skill for Codex in-app browser navigation,
   local web target testing, screenshots, and interaction.
-- Use `helium-browser-mcp` only when the task requires the user's logged-in
-  Helium profile through the local OpenBrowserMCP extension.
+- Use `bro-browser` when the task requires a logged-in Chromium-family browser
+  through the local bro MCP extension.
 
 ### GitHub Work
 
@@ -116,8 +116,7 @@ When reviewing a skill, ask:
 - Are references one hop from `SKILL.md` and loaded only when useful?
 - Are scripts used for deterministic fragile flows instead of rewritten in
   prose every time?
-- Is a new skill linked through `scripts/link-local-skills.sh` if it should be
-  installed in the local runtime view?
+- Is a new skill installed via `npx skills@latest add xiaotianxt/skills --skill <name>` if it should be in the local runtime view?
 - Is the source recorded in `SOURCES.md`?
 
 If a skill crosses roles, either split it, move detail into a reference, or add

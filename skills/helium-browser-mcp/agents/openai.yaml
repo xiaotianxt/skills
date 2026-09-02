@@ -1,4 +1,0 @@
-interface:
-  display_name: "Helium Browser MCP"
-  short_description: "Control Helium through the local OpenBrowserMCP extension."
-  default_prompt: "Show my current Helium tabs using OpenBrowserMCP."

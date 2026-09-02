@@ -12,15 +12,26 @@ sources instead of being re-published here.
 
 ## Third-Party Installed Skills
 
-The following installed skills were not vendored because they are third-party or
-upstream-owned:
+The following installed skills are not vendored in this repo because they are
+third-party or upstream-owned. Install them via skills.sh from their respective
+sources:
 
-- `~/.agents/skills/agent-browser`
-- `~/.agents/skills/find-skills`
-- `~/.agents/skills/frontend-design`
-- `~/.agents/skills/teach-impeccable`
-- `~/.agents/skills/vercel-cli`
-- `~/Develop.localized/agent-browser/skills/*`
+- `agent-browser` -> `vercel-labs/agent-browser`
+- `find-skills` -> `vercel-labs/skills`
+- `frontend-design` -> `pbakaus/impeccable`
+- `teach-impeccable` -> `pbakaus/impeccable`
+- `vercel-cli` -> `vercel/vercel`
+- `typst` -> `lucifer1004/claude-skill-typst`
+- `gws-*` (14 skills) -> `googleworkspace/cli`
+
+## Project-Level Skills
+
+The following skills have their own project repos and are not vendored here:
+
+- `cx` -> `~/dev/cx` (repo: xiaotianxt/cx)
+- `mon` -> `~/dev/mon` (repo: xiaotianxt/mon)
+- `tg` -> `~/dev/tg` (repo: xiaotianxt/tg)
+- `mimestreamctl` -> `~/dev/mimestreamctl` (repo: xiaotianxt/mimestreamctl)
 
 ## Local Project Data
 

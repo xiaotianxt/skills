@@ -1,6 +1,6 @@
 # skills
 
-Personal Codex and agent skills, collected into one public, source-controlled repo.
+Personal agent skills, collected into one public, source-controlled repo.
 
 ## Layout
 
@@ -13,135 +13,65 @@ skills/<skill-name>/SKILL.md
 Optional bundled resources live next to `SKILL.md`, for example `scripts/`,
 `references/`, `assets/`, or `agents/openai.yaml`.
 
-## Install One Skill
+## Install
 
-Install exactly the skill you need. The installer intentionally has no
-"install every skill" mode.
-
-Install from npm:
+Install skills using [skills.sh](https://skills.sh):
 
 ```bash
-npx -y @xiaotianxt/skills bro-browser
+npx skills@latest add xiaotianxt/skills --global --agent opencode --skill <skill-name> -y
 ```
 
-Or install from GitHub:
+List available skills:
 
 ```bash
-npx -y github:xiaotianxt/skills bro-browser
+npx skills@latest add xiaotianxt/skills --list
 ```
 
-Per-project examples:
+Update installed skills:
 
 ```bash
-npx -y @xiaotianxt/skills bro-browser
-npx -y @xiaotianxt/skills tg
-npx -y @xiaotianxt/skills cx
-npx -y @xiaotianxt/skills mon
+npx skills@latest update -g
 ```
 
-For `tg`, prefer the project binary when it is installed:
+The legacy `@xiaotianxt/skills` npm installer is frozen at `0.1.1`. This repo
+is no longer published as an npm package; skills.sh is the supported installer.
 
-```bash
-tg skill install
-```
-
-That command renders the local machine-specific skill from tg's dictionary.
-The NPX command installs the public Telegram-worded central skill template.
-
-The default target is Codex: `~/.codex/skills/<skill-name>`. Other targets:
-
-```bash
-npx -y @xiaotianxt/skills bro-browser --target agents
-npx -y @xiaotianxt/skills bro-browser --target claude
-npx -y @xiaotianxt/skills bro-browser --dir ~/.codex/skills
-```
-
-List available packaged skills:
-
-```bash
-npx -y @xiaotianxt/skills list
-```
+Other supported agents: `codex`, `claude-code`, `cursor`, `gemini-cli`,
+`github-copilot`, and more. Use `--agent <name>` to select.
 
 Restart the target agent after installing or updating a skill.
-
-The older Codex skill installer still works when you want to install directly
-from this GitHub repo:
-
-```bash
-python3 ~/.codex/skills/.system/skill-installer/scripts/install-skill-from-github.py \
-  --repo xiaotianxt/skills \
-  --path skills/<skill-name>
-```
 
 ## Development Model
 
 For this machine, `~/dev/skills` is the canonical source tree for user-owned
-skills. Treat `~/.codex/skills` and `~/.agents/skills` as runtime install views,
-not as the place to author durable skill changes.
+skills. Treat `~/.agents/skills` and harness-specific directories such as
+`~/.codex/skills` as runtime install views, not as places to author durable
+skill changes.
 
 When creating or updating a user-owned skill:
 
-1. Edit `~/dev/skills/skills/<skill-name>/...`.
-2. Commit the change in this repo.
-3. Link the installed runtime copy back to this checkout.
-4. Restart Codex or the target agent when a refreshed skill must be loaded.
-
-This keeps skill history reviewable, avoids editing generated or installed
-copies directly, and makes local improvements publishable.
-
-## Runtime Links
-
-Create or refresh the runtime symlinks with:
-
-```bash
-git clone https://github.com/xiaotianxt/skills.git ~/dev/skills
-~/dev/skills/scripts/link-local-skills.sh
-```
-
-This maps selected `~/.codex/skills/*` and `~/.agents/skills/*` entries to
-`~/dev/skills/skills/*`. Existing installed directories are backed up before
-being replaced by symlinks.
-
-To update installed skills later:
-
-```bash
-git -C ~/dev/skills pull --ff-only
-~/dev/skills/scripts/link-local-skills.sh
-```
-
-To mirror canonical skill docs into local open source project repos:
-
-```bash
-~/dev/skills/scripts/sync-project-skills.sh
-```
-
-That script copies:
-
-- `~/dev/skills/skills/cx/SKILL.md` -> `~/dev/cx/SKILL.md`
-- `~/dev/skills/skills/tg/SKILL.md` -> `~/dev/tg/SKILL.md`
-- `~/dev/skills/skills/mimestreamctl` -> `~/dev/mimestreamctl/skills/mimestreamctl`
-
-Project repos keep real mirrored files rather than symlinks so GitHub can render
-the skill docs normally. Check drift without writing:
-
-```bash
-~/dev/skills/scripts/sync-project-skills.sh --check
-```
+1. Edit `~/dev/skills/skills/<skill-name>/SKILL.md`.
+2. To sync the local runtime view (no commit needed):
+   ```bash
+   npx skills@latest add ~/dev/skills --global --agent opencode --skill <skill-name> -y
+   ```
+   This copies from the local working tree but does not write the skills.sh
+   lock file.
+3. To publish and switch the runtime copy back to the GitHub source:
+   ```bash
+   git -C ~/dev/skills commit -m "update <skill-name>"
+   git -C ~/dev/skills push
+   npx skills@latest add xiaotianxt/skills --global --agent opencode --skill <skill-name> -y
+   ```
+   The final command pulls from GitHub and writes the lock entry
+   (`source=xiaotianxt/skills`). Later releases can use `npx skills@latest
+   update -g`.
 
 ## Included Skills
 
-This repo includes user-owned local skills from `~/.codex/skills`, selected
-generated Google Workspace `gws-*` skills, and lightweight skill wrappers from
-local `~/dev` tools.
-
-Notable curation choices:
-
-- System skills from `~/.codex/skills/.system` are not re-published here.
-- Third-party installed skills are not vendored here unless they are user-owned.
-- Large local project directories are not copied. For `~/dev/mon`, `~/dev/cx`,
-  and `~/dev/tg`, only the skill instructions are included.
-- The public `tg` skill keeps the Telegram-facing wording used by the open
-  source tool documentation.
+This repo includes user-owned skills authored here. Third-party skills (from
+googleworkspace/cli and other upstreams) are installed separately via skills.sh
+and not vendored in this repo.
 
 See [SOURCES.md](SOURCES.md) for source mapping and [EXCLUDED.md](EXCLUDED.md)
 for what was intentionally left out.
