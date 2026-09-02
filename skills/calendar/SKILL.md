@@ -24,8 +24,11 @@ Use this as the top-level calendar governance skill. It decides source of truth,
 
 For event creation when the user says "my calendar" or gives no target:
 
-1. Use `gws auth status`.
-2. Require `user == "tianyupeiandy@gmail.com"` and `token_valid == true`.
+1. Use the `personal` gws profile and run `gws auth status` through its
+   explicit config directory.
+2. Require `token_valid == true`, then resolve Calendar ID `primary` through
+   the Calendar API and require its returned `id` to equal the profile's local
+   `expected-user` value.
 3. Write to Google Calendar ID `tianyupeiandy@gmail.com`.
 4. State the active account, target calendar ID, title, and exact local start/end before writing.
 5. Use Apple Calendar only when the user explicitly asks for Apple Calendar or Calendar.app.
@@ -37,15 +40,53 @@ Do not rely on:
 - Display names alone when duplicate names exist.
 - `primary` in multi-account or account-confusing contexts.
 
+## gws Account Profiles
+
+`gws` does not currently provide a reliable native named-profile switch. Keep
+each account in an isolated encrypted config directory and prefix every command:
+
+- `personal`: `/Users/yupeit/.config/gws/profiles/personal`
+- `cmu`: `/Users/yupeit/.config/gws/profiles/cmu`
+
+Each profile directory must contain a mode-`0600` `expected-user` file with the
+one exact account email authorized for that profile. Keep this identity mapping
+local instead of publishing every account address in the skill.
+
+Example:
+
+```bash
+profile_dir=/Users/yupeit/.config/gws/profiles/personal
+expected_user="$(<"$profile_dir/expected-user")"
+export GOOGLE_WORKSPACE_CLI_CONFIG_DIR="$profile_dir"
+gws auth status | jq -e '.token_valid == true'
+gws calendar calendars get --params '{"calendarId":"primary"}' \
+  | jq -e --arg expected "$expected_user" '.id == $expected'
+```
+
+Never use bare `gws` for multi-account calendar work. Before every read or
+write sequence, verify `token_valid` and the selected profile's exact primary
+Calendar ID; `gws auth status` 0.22.5 does not report the account email. Do not
+infer identity from a calendar name or browser account. Read
+`references/operations.md` when logging in, adding a profile, or handling gws
+quota-project failures.
+
 ## Scenario Router
 
 ### Read or Agenda
 
-Use `gws-calendar-agenda` or raw `gws calendar events list` against Google first. Include Apple Calendar.app only when the user asks about local Calendar.app state, missing events in Apple, duplicate display names, or default-calendar behavior.
+Use `gws-calendar-agenda` or raw `gws calendar events list` through the explicit
+account profile against Google first. Include Apple Calendar.app only when the
+user asks about local Calendar.app state, missing events in Apple, duplicate
+display names, or default-calendar behavior.
 
 ### Create or Edit Personal Events
 
-Use `gws-calendar-insert` or raw `gws calendar +insert` with explicit `--calendar tianyupeiandy@gmail.com`. Before writing, state the active account, calendar ID, title, exact local start/end, time zone, and whether guests/conference/reminders will be created. If the auth account is not `tianyupeiandy@gmail.com`, stop and re-auth instead of writing through another account.
+Use `gws-calendar-insert` or raw `gws calendar +insert` through the `personal`
+profile with explicit `--calendar tianyupeiandy@gmail.com`. Before writing,
+state the active account, calendar ID, title, exact local start/end, time zone,
+and whether guests/conference/reminders will be created. If the auth account is
+not `tianyupeiandy@gmail.com`, stop and re-auth instead of writing through
+another account.
 
 ### Diagnose "My Calendar Is Messy"
 
@@ -79,7 +120,8 @@ Default to "hide/archive" instead. Delete, unsubscribe, or remove shared calenda
 
 ### 2. Build State From Source APIs
 
-Use these checks before decisions that affect ownership or visibility:
+Use these checks before decisions that affect ownership or visibility,
+prefixing every `gws` command with the intended profile as described above:
 
 ```bash
 gws auth status
@@ -179,4 +221,7 @@ Current known source-of-truth assumptions:
 
 ## Detailed Recipes
 
-For copy-pastable commands, migration dedupe preview, and rollback patterns, read `references/operations.md` only when performing governance mutations, migrations, or Apple/Google reconciliation.
+For copy-pastable commands, profile login and troubleshooting, migration dedupe
+preview, and rollback patterns, read `references/operations.md` only when
+performing authentication, governance mutations, migrations, or Apple/Google
+reconciliation.

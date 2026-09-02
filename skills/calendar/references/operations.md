@@ -4,6 +4,7 @@
 
 - Snapshot and backup
 - Active account verification
+- Multi-account gws profiles
 - Read-only inventory and governance review
 - Visibility, labels, and real names
 - Event creation
@@ -13,6 +14,24 @@
 - Scope expectations and rollback
 
 Use this file for copy-pastable commands. Do not run mutation commands during a planning-only request; show the command and explain the preconditions instead.
+
+## Select And Verify Active Account
+
+Run this in the same shell command as the recipe that follows so every bare
+`gws` invocation inherits the selected profile. `gws auth status` 0.22.5 does
+not report the account email, so verify identity through the primary Calendar:
+
+```bash
+profile_dir=/Users/yupeit/.config/gws/profiles/personal
+expected_user="$(<"$profile_dir/expected-user")"
+export GOOGLE_WORKSPACE_CLI_CONFIG_DIR="$profile_dir"
+gws auth status | jq -e '.token_valid == true'
+gws calendar calendars get --params '{"calendarId":"primary"}' \
+  | jq -e --arg expected "$expected_user" '.id == $expected'
+```
+
+If this fails, do not read or write Calendar data. Re-auth through the same
+profile directory with the narrowest needed scopes.
 
 ## Snapshot
 
@@ -28,16 +47,87 @@ cd /Users/yupeit/dev/skills/skills/apple-calendar-event
 python3 scripts/calendar_audit.py --json > "$backup_dir/apple-calendar-audit-before.json"
 ```
 
-## Verify Active Account
+## Multi-Account gws Profiles
 
-```bash
-gws auth status | jq -e '.user == "tianyupeiandy@gmail.com" and .token_valid == true'
+The installed `gws` version has no reliable native named-profile switch. Use
+one encrypted config directory per account:
+
+```text
+/Users/yupeit/.config/gws/profiles/personal
+/Users/yupeit/.config/gws/profiles/cmu
 ```
 
-If this fails, do not write events or patch calendar metadata. Re-auth with the narrowest needed scope, usually:
+Each directory must contain a mode-`0600` `expected-user` file with the exact
+account email for that profile. Prefix every command with the intended
+directory; never use bare `gws` without first exporting and verifying the
+selected profile in the same shell:
 
 ```bash
-gws auth login --services calendar
+profile_dir=/Users/yupeit/.config/gws/profiles/personal
+expected_user="$(<"$profile_dir/expected-user")"
+export GOOGLE_WORKSPACE_CLI_CONFIG_DIR="$profile_dir"
+gws auth status | jq -e '.token_valid == true'
+gws calendar calendars get --params '{"calendarId":"primary"}' \
+  | jq -e --arg expected "$expected_user" '.id == $expected'
+```
+
+For a new profile, copy the existing OAuth desktop client's
+`client_secret.json` without printing it, record the expected identity locally,
+then authenticate only the scopes the workflow needs. Run long-lived login in
+tmux so the localhost callback survives an interrupted agent turn:
+
+```bash
+profile_dir=/Users/yupeit/.config/gws/profiles/PROFILE
+mkdir -p "$profile_dir"
+install -m 600 /Users/yupeit/.config/gws/client_secret.json \
+  "$profile_dir/client_secret.json"
+printf '%s\n' 'EXPECTED_ACCOUNT_EMAIL' > "$profile_dir/expected-user"
+chmod 600 "$profile_dir/expected-user"
+
+tmux new-session -d -s gws-PROFILE-login \
+  "env GOOGLE_WORKSPACE_CLI_CONFIG_DIR=$profile_dir gws auth login --scopes \
+  'https://www.googleapis.com/auth/calendar.events,https://www.googleapis.com/auth/calendar.calendarlist.readonly,https://www.googleapis.com/auth/calendar.calendars.readonly'"
+```
+
+After login, require `token_valid == true` and verify the primary Calendar ID
+against `expected-user` before any other API call. Do not copy plaintext
+exported credentials between profiles.
+
+### gws 0.22.5 quota-project failure
+
+Version 0.22.5 may send the OAuth client's GCP project as
+`x-goog-user-project`. A non-project-member account then receives
+`serviceusage.services.use` even after successful OAuth. Do not repeat login or
+broaden Calendar scopes; first check whether a fixed Homebrew release exists.
+
+If no fixed release exists, derive the OAuth project from the selected
+profile's local `client_secret.json`. The project owner may then, with explicit
+user approval, grant only the affected Google identity permission to consume
+that project's services:
+
+```bash
+profile_dir=/Users/yupeit/.config/gws/profiles/PROFILE
+project_id="$(python3 -c '
+import json, sys
+value = json.load(open(sys.argv[1]))
+client = value.get("installed") or value.get("web") or {}
+print(client.get("project_id", ""))
+' "$profile_dir/client_secret.json")"
+test -n "$project_id"
+
+gcloud projects add-iam-policy-binding "$project_id" \
+  --member='user:ACCOUNT' \
+  --role='roles/serviceusage.serviceUsageConsumer' \
+  --condition=None
+```
+
+Verify by rerunning the original failing Workspace API command. Roll back with:
+
+```bash
+gcloud projects remove-iam-policy-binding "$project_id" \
+  --member='user:ACCOUNT' \
+  --role='roles/serviceusage.serviceUsageConsumer' \
+  --condition=None
 ```
 
 ## Read-Only Inventory And Governance Review
@@ -129,7 +219,9 @@ gws calendar calendars get --params '{"calendarId":"CALENDAR_ID"}' > "$backup_di
 Preflight:
 
 ```bash
-gws auth status | jq -e '.user == "tianyupeiandy@gmail.com" and .token_valid == true'
+gws auth status | jq -e '.token_valid == true'
+gws calendar calendars get --params '{"calendarId":"primary"}' \
+  | jq -e --arg expected "$expected_user" '.id == $expected'
 ```
 
 Then write only with an explicit target:
