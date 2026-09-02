@@ -50,6 +50,12 @@ here:
 - `tg` -> `~/dev/tg/SKILL.md` (repo: xiaotianxt/tg)
 - `mimestreamctl` -> `~/dev/mimestreamctl/skills/mimestreamctl` (repo: xiaotianxt/mimestreamctl)
 
+## Retired
+
+- `helium-browser-mcp` was replaced by the narrower `bro-browser` skill.
+- `web-artifacts-builder` is upstream-owned and should be installed from
+  `anthropics/skills` when needed.
+
 ## Normalization
 
 - `learn` was added to the Included table (previously missing from SOURCES.md).

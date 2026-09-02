@@ -22,6 +22,7 @@ sources:
 - `teach-impeccable` -> `pbakaus/impeccable`
 - `vercel-cli` -> `vercel/vercel`
 - `typst` -> `lucifer1004/claude-skill-typst`
+- `web-artifacts-builder` -> `anthropics/skills`
 - `gws-*` (14 skills) -> `googleworkspace/cli`
 
 ## Project-Level Skills
