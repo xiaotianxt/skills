@@ -1,5 +1,5 @@
 ---
-name: course-exam-review-planner
+name: exam-review
 description: Build an evidence-driven review plan for a course exam or final. Use when the user wants to prepare for a new course exam by collecting recordings/transcripts, identifying the official exam scope, mining homework/practice exams/past exams/forums, and turning the result into a concrete study plan or Things 3 project.
 ---
 
@@ -9,8 +9,8 @@ Use this skill when planning how to review for a course exam, especially when th
 
 This skill owns the exam-review workflow. Use neighboring tool skills for data
 access and execution details: `canvas` for Canvas LMS data,
-`panopto-mp4-bulk-download` for lecture media extraction, and
-`things3-manager` for Things 3 task creation.
+`panopto` for lecture media extraction, and
+`things3` for Things 3 task creation.
 
 ## Core Principle
 
@@ -38,7 +38,7 @@ Ask for or locate:
 - Course name/number and term.
 - Exam date, time, location, duration, allowed materials, grading weight.
 - Course website, LMS/exported folder, syllabus, final guide, announcements.
-- Full lecture recordings and transcripts. If recordings are on Panopto, use the `panopto-mp4-bulk-download` skill when bulk download is needed.
+- Full lecture recordings and transcripts. If recordings are on Panopto, use the `panopto` skill when bulk download is needed.
 - Homework PDFs, solution PDFs, quizzes, midterm/final practice exams, previous exams.
 - Existing notes, cheat sheet constraints, and user time availability.
 - User's target outcome: pass, high grade, or mastery.
@@ -93,7 +93,7 @@ Ask for or locate:
 9. Produce an action plan.
    - Group tasks by date and topic cluster.
    - Each task should name exact files, questions, and completion criteria.
-   - If using Things 3, create a project with headings by day/topic and verify the import with `things3-manager`.
+   - If using Things 3, create a project with headings by day/topic and verify the import with `things3`.
 
 ## Output Shape
 

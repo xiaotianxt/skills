@@ -1,4 +1,4 @@
 interface:
   display_name: "Panopto MP4 Download"
   short_description: "Download authenticated Panopto lecture recordings"
-  default_prompt: "Use $panopto-mp4-bulk-download to download these Panopto lectures into a local folder."
+  default_prompt: "Use $panopto to download these Panopto lectures into a local folder."

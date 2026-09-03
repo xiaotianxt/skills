@@ -1,5 +1,5 @@
 ---
-name: things3-manager
+name: things3
 description: Manage Things 3 on macOS through the official Things URL scheme. Use when asked to add, batch-import, update, show, search, or programmatically locate existing open to-dos/projects in Things, especially when an auth token should be injected from an env file.
 ---
 
@@ -13,15 +13,15 @@ Use this skill for Things 3 automation on macOS.
   - Things 3 is installed.
   - In Things -> Settings -> General, "Enable Things URLs" is enabled.
 - Global install path:
-  - `~/.codex/skills/things3-manager/`
+  - `~/.codex/skills/things3/`
 - Global mutable state:
-  - `~/.codex/skills-data/things3-manager/.env`
+  - `~/.codex/skills-data/things3/.env` (or legacy `~/.codex/skills-data/things3-manager/.env`)
 - Main CLI:
-  - `bash ~/.codex/skills/things3-manager/scripts/things --help`
+  - `bash ~/.codex/skills/things3/scripts/things --help`
 
 ## Token handling
 
-- The wrapper auto-sources `~/.codex/skills-data/things3-manager/.env`.
+- The wrapper auto-sources `~/.codex/skills-data/things3/.env` (falls back to legacy `~/.codex/skills-data/things3-manager/.env`).
 - Store the Things auth token as `THINGS_AUTH_TOKEN=...` in that file.
 - You can also override it per command with `THINGS_AUTH_TOKEN=... bash .../things ...` or `--auth-token ...`.
 - `update-*` commands always require a token.
@@ -58,14 +58,14 @@ Use this skill for Things 3 automation on macOS.
 ## Examples
 
 ```bash
-bash ~/.codex/skills/things3-manager/scripts/things add-todo \
+bash ~/.codex/skills/things3/scripts/things add-todo \
   --title "Book flights" \
   --when 2026-03-25@18:00 \
   --deadline 2026-03-25
 ```
 
 ```bash
-bash ~/.codex/skills/things3-manager/scripts/things json \
+bash ~/.codex/skills/things3/scripts/things json \
   --data-file /tmp/things-import.json \
   --reveal
 ```
@@ -98,20 +98,20 @@ bash ~/.codex/skills/things3-manager/scripts/things json \
 ```
 
 ```bash
-bash ~/.codex/skills/things3-manager/scripts/things find-open-todos \
+bash ~/.codex/skills/things3/scripts/things find-open-todos \
   --project "17629 Assignments" \
   --title-contains "In-Class Exercise" \
   --json
 ```
 
 ```bash
-bash ~/.codex/skills/things3-manager/scripts/things update-todo \
+bash ~/.codex/skills/things3/scripts/things update-todo \
   --id 3h8S39kz63CjXEqJ3aJw3m \
   --when 2026-03-26@12:30 \
   --dry-run
 ```
 
 ```bash
-bash ~/.codex/skills/things3-manager/scripts/things set-token \
+bash ~/.codex/skills/things3/scripts/things set-token \
   --token "$THINGS_AUTH_TOKEN"
 ```

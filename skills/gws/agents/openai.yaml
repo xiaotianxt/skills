@@ -1,0 +1,4 @@
+interface:
+  display_name: "Google Workspace"
+  short_description: "Govern and operate Google Workspace (Calendar, Gmail, Drive, Docs) via gws CLI."
+  default_prompt: "Use $gws to manage Google Calendar events, search/draft Gmail messages, and interact with Google Workspace."

@@ -11,10 +11,10 @@ Use these roles when adding, reviewing, or refactoring skills:
 | Role | Purpose | Examples |
 | --- | --- | --- |
 | Governor | Sets taste, risk posture, and review standards across tasks. | `design-decisions`, `rust-systems-style` |
-| Product workflow | Turns a broad user goal into a repeatable multi-step outcome. | `ship-ai-native-cli`, `course-exam-review-planner` |
-| Tool control | Operates a specific local app, CLI, API, or data source. | `tg`, `cx`, `mon`, `mimestreamctl`, `canvas`, `things3-manager`, `1password` |
+| Product workflow | Turns a broad user goal into a repeatable multi-step outcome. | `ship-ai-native-cli`, `exam-review` |
+| Tool control | Operates a specific local app, CLI, API, or data source. | `tg`, `cx`, `mon`, `canvas`, `things3`, `1password` |
 | Generated tool family | Mirrors a large API surface through narrow generated commands. | `gws-*`, `gws-shared` |
-| Router | Chooses among neighboring skills for a domain before execution. | `calendar`, `github` |
+| Router | Chooses among neighboring skills for a domain before execution. | `gws`, `github` |
 | Asset transformer | Converts a specific input artifact into a specific output artifact. | `extract-transparent-signature` |
 
 A skill can cooperate with other skills, but it should not silently absorb
@@ -37,35 +37,29 @@ their responsibilities.
 
 ### Academic Work
 
-- `course-exam-review-planner` owns the study-plan workflow: exam contract,
+- `exam-review` owns the study-plan workflow: exam contract,
   artifact mapping, drill plan, error log, cheat-sheet outline, and optional
   task creation.
 - `canvas` owns Canvas LMS data access: courses, assignments, submissions,
   grades, files, syllabus pages, and Canvas-specific grade calculations.
-- `edstem-course-materials` owns read-only, incremental archives of downloadable
+- `edstem` owns read-only, incremental archives of downloadable
   EdStem lesson and resource files.
-- `gradescope-reader` owns read-only inspection of authenticated Gradescope
+- `gradescope` owns read-only inspection of authenticated Gradescope
   assignments, submissions, scores, and released feedback.
-- `panopto-mp4-bulk-download` owns lecture video URL extraction and bulk media
+- `panopto` owns lecture video URL extraction and bulk media
   download.
-- `things3-manager` owns writing the resulting plan into Things 3.
+- `things3` owns writing the resulting plan into Things 3.
 
 The planner can orchestrate the others, but it should not inline Canvas API
 rules, Panopto download mechanics, or Things URL details.
 
-### Email And Calendar
+### Google Workspace, Email And Calendar
 
-- `mimestreamctl` owns direct interaction with the local Mimestream app:
-  selected messages, drafts, menus, mailbox actions, and app-local state.
-- `gws-gmail*` owns Gmail API work through the `gws` CLI.
-- `calendar` owns calendar source-of-truth decisions, cleanup strategy,
-  migration planning, safe write-target choice, and local macOS Calendar.app
-  audits and explicit writes through its bundled helpers.
-- `gws-calendar*` owns Google Calendar API work through the `gws` CLI.
-
-When the user names a local app or current selection, prefer the app-control
-skill. When the user names a Google Workspace account/API workflow, prefer the
-`gws-*` skill.
+- `gws` owns Google Workspace CLI operations, calendar source-of-truth decisions,
+  cleanup strategy, safe write-target choice, and local macOS Calendar.app
+  audits/scripts, as well as Gmail triage, reading, and drafting.
+- `gws-gmail*` owns fine-grained Gmail API leaf work through the `gws` CLI.
+- `gws-calendar*` owns fine-grained Google Calendar API leaf work through the `gws` CLI.
 
 ### Product And Systems Work
 
@@ -99,9 +93,7 @@ governor continuously for implementation taste.
 
 ### Local History
 
-- `memory` owns read-only search across past Codex and opencode sessions.
-- `macos-messages` owns read-only local iMessage/SMS history through
-  Messages.app's SQLite cache.
+- `memory` owns read-only search across past Pi, Codex, and OpenCode sessions.
 
 ### Secrets
 

@@ -1,5 +1,5 @@
 ---
-name: edstem-course-materials
+name: edstem
 description: Download and incrementally update downloadable files from an authenticated EdStem course's Lessons and Resources pages. Use when the user wants a local archive or refresh of EdStem slides, PDFs, attachments, or other course materials; do not use for discussions, submissions, or lesson completion.
 ---
 
@@ -19,7 +19,7 @@ Rerun the command to update. `.edstem-manifest.json` skips unchanged files; the 
 
 - Require a zero exit status and `failed: 0` before calling the file sync complete.
 - Inspect `.edstem-manifest.json`: `files` are local; `links` still need handling.
-- For **all** materials, pass that manifest to `$panopto-mp4-bulk-download`, then report any remaining protected links.
+- For **all** materials, pass that manifest to `$panopto`, then report any remaining protected links.
 - Do not append `view=1` to lesson API calls: it can alter lesson progress.
 - Do not scrape discussions or download submissions unless the user separately asks for them.
 

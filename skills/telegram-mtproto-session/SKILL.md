@@ -1,6 +1,7 @@
 ---
 name: telegram-mtproto-session
 description: Create, verify, and use local Telegram MTProto user sessions with Telethon, including fast date-bounded chat history sync into local SQLite/FTS and local history queries. Use when Codex needs to log in to Telegram with a phone account, validate an existing .session file, read Telegram channel/group/chat history, search or inspect Telegram chats through the user API, or recover from broken/unauthorized sessions while keeping Telegram app credentials in macOS Keychain.
+disable-model-invocation: true
 ---
 
 # Telegram MTProto Session

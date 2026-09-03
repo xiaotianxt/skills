@@ -32,7 +32,6 @@ The following skills have their own project repos and are not vendored here:
 - `cx` -> `~/dev/cx` (repo: xiaotianxt/cx)
 - `mon` -> `~/dev/mon` (repo: xiaotianxt/mon)
 - `tg` -> `~/dev/tg` (repo: xiaotianxt/tg)
-- `mimestreamctl` -> `~/dev/mimestreamctl` (repo: xiaotianxt/mimestreamctl)
 
 ## Local Project Data
 

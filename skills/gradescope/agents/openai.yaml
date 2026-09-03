@@ -1,0 +1,4 @@
+interface:
+  display_name: "Gradescope Reader"
+  short_description: "Read logged-in Gradescope assignments and feedback"
+  default_prompt: "Use $gradescope to inspect the Gradescope page I have open and summarize its questions, saved answers, scores, and visible feedback."

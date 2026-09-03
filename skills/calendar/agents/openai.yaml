@@ -1,4 +1,0 @@
-interface:
-  display_name: "Calendar"
-  short_description: "Govern Google-first calendars, Apple views, and school migrations."
-  default_prompt: "Use $calendar to audit, govern, migrate, and maintain my Google-first personal calendar system without accidental Apple, school, or secondary-account ownership."

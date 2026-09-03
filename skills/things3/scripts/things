@@ -1,9 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SKILL_NAME="things3-manager"
+SKILL_NAME="things3"
 SKILL_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-SKILL_DATA_DIR="${CODEX_SKILLS_DATA_DIR:-$HOME/.codex/skills-data/$SKILL_NAME}"
+LEGACY_DATA_DIR="$HOME/.codex/skills-data/things3-manager"
+DEFAULT_DATA_DIR="$HOME/.codex/skills-data/$SKILL_NAME"
+if [[ -z "${CODEX_SKILLS_DATA_DIR:-}" ]] && [[ ! -d "$DEFAULT_DATA_DIR" ]] && [[ -d "$LEGACY_DATA_DIR" ]]; then
+  SKILL_DATA_DIR="$LEGACY_DATA_DIR"
+else
+  SKILL_DATA_DIR="${CODEX_SKILLS_DATA_DIR:-$DEFAULT_DATA_DIR}"
+fi
 ENV_FILE="$SKILL_DATA_DIR/.env"
 
 mkdir -p "$SKILL_DATA_DIR" "$SKILL_DATA_DIR/logs" "$SKILL_DATA_DIR/tmp"
@@ -21,9 +27,9 @@ EXTERNAL_THINGS_APP_BUNDLE_ID="${THINGS_APP_BUNDLE_ID:-}"
 # shellcheck disable=SC1090
 source "$ENV_FILE"
 
-SKILL_NAME="things3-manager"
+SKILL_NAME="things3"
 SKILL_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-SKILL_DATA_DIR="${CODEX_SKILLS_DATA_DIR:-$HOME/.codex/skills-data/$SKILL_NAME}"
+SKILL_DATA_DIR="$SKILL_DATA_DIR"
 
 if [[ -n "$EXTERNAL_THINGS_AUTH_TOKEN" ]]; then
   THINGS_AUTH_TOKEN="$EXTERNAL_THINGS_AUTH_TOKEN"

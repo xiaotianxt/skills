@@ -1,4 +1,4 @@
 interface:
   display_name: "EdStem Course Materials"
   short_description: "Download and incrementally update EdStem course files"
-  default_prompt: "Use $edstem-course-materials to sync all downloadable files from this EdStem course into a local folder."
+  default_prompt: "Use $edstem to sync all downloadable files from this EdStem course into a local folder."

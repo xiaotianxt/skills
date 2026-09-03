@@ -9,25 +9,24 @@ are installed separately via skills.sh and not vendored in this repo.
 | --- | --- |
 | `1password` | Created in this repo as scoped 1Password import/fallback guidance |
 | `bro-browser` | Created in this repo for the local bro browser MCP workflow |
-| `calendar` | Created in this repo as personal calendar governance guidance |
 | `canvas` | Created in this repo as the local source of truth, including its bundled Canvas API and incremental course-sync CLI |
-| `course-exam-review-planner` | Created in this repo as the academic review-planning workflow |
 | `design-decisions` | Created in this repo as structured design-decision guidance, distilled from CMU 15-410's trade-off matrix method |
-| `edstem-course-materials` | Created in this repo for authenticated EdStem course-material archives |
+| `edstem` | Created in this repo for authenticated EdStem course-material archives |
+| `exam-review` | Created in this repo as the academic review-planning workflow |
 | `gh-fix-ci` | Created in this repo as GitHub Actions PR check workflow guidance |
 | `gh-review-workflow` | Created in this repo as local GitHub review workflow guidance (originally collected from `~/.codex/skills/gh-review-workflow`) |
 | `github` | Created in this repo as GitHub triage and routing guidance |
-| `gradescope-reader` | Created in this repo for read-only inspection of authenticated Gradescope pages |
+| `gradescope` | Created in this repo for read-only inspection of authenticated Gradescope pages |
+| `gws` | Created in this repo as Google Workspace CLI (Calendar, Gmail, Drive, Docs) governance guidance |
 | `gws-shared` | Created in this repo as shared auth and safety guidance for upstream `gws-*` skills |
 | `learn` | Created in this repo as evidence-based learning workflow guidance |
-| `macos-messages` | Created in this repo as local Messages history guidance |
-| `memory` | Created in this repo as local agent history search guidance |
+| `memory` | Created in this repo as local agent history search guidance across pi, codex, and opencode |
 | `ocr` | Created in this repo as OCR routing guidance |
-| `panopto-mp4-bulk-download` | Created in this repo for authenticated Panopto lecture archives |
+| `panopto` | Created in this repo for authenticated Panopto lecture archives |
 | `rust-systems-style` | Created in this repo as the local source of truth for Rust systems code style |
 | `ship-ai-native-cli` | Created in this repo as product and release guidance for local CLI projects |
-| `telegram-mtproto-session` | Created in this repo as local Telegram MTProto session guidance |
-| `things3-manager` | Created in this repo for local Things 3 automation |
+| `telegram-mtproto-session` | Created in this repo as local Telegram MTProto session guidance (disabled from autonomous model invocation) |
+| `things3` | Created in this repo for local Things 3 automation |
 | `yeet` | Created in this repo as local GitHub publish workflow guidance |
 
 ## Removed (previously vendored, now installed upstream)
@@ -48,7 +47,6 @@ here:
 - `cx` -> `~/dev/cx/SKILL.md` (repo: xiaotianxt/cx)
 - `mon` -> `~/dev/mon/SKILL.md` (repo: xiaotianxt/mon)
 - `tg` -> `~/dev/tg/SKILL.md` (repo: xiaotianxt/tg)
-- `mimestreamctl` -> `~/dev/mimestreamctl/skills/mimestreamctl` (repo: xiaotianxt/mimestreamctl)
 
 ## Retired
 

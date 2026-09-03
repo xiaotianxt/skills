@@ -12,7 +12,7 @@ from typing import Any
 
 
 APP_BUNDLE_ID = os.environ.get("THINGS_APP_BUNDLE_ID", "com.culturedcode.ThingsMac")
-SKILL_DATA_DIR = Path(os.environ.get("SKILL_DATA_DIR", Path.home() / ".codex" / "skills-data" / "things3-manager"))
+SKILL_DATA_DIR = Path(os.environ.get("SKILL_DATA_DIR", Path.home() / ".codex" / "skills-data" / "things3"))
 ENV_FILE = SKILL_DATA_DIR / ".env"
 
 

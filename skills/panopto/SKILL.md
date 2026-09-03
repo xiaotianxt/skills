@@ -1,5 +1,5 @@
 ---
-name: panopto-mp4-bulk-download
+name: panopto
 description: Download Panopto lecture recordings from authenticated Viewer links, including links recorded in an EdStem materials manifest. Use for local lecture-video archives or incremental Panopto downloads; do not use for uploading, sharing, or changing recordings.
 ---
 

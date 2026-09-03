@@ -1,5 +1,5 @@
 ---
-name: gradescope-reader
+name: gradescope
 description: "Read logged-in Gradescope course, online-assignment, submission, score, rubric, autograder, test-result, and regrade pages through bro. Use when the user asks to inspect, verify, extract, or summarize Gradescope page content; keep the workflow read-only unless the user separately authorizes an action."
 ---
 
