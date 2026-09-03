@@ -35,7 +35,7 @@ Do not conclude that a course is absent from one filtered course-list call.
 3. Canvas can return enrolled-course stubs with an ID but null identifying fields. Fetch each stub through `/api/v1/courses/:course_id`; use `/sections` if the course name remains ambiguous.
 4. Record a direct-detail `403` as inaccessible/unresolved. It may be a restricted past or future course, so it is not evidence that the requested course does not exist.
 
-The local helper's `raw-get` command does not paginate. Its `courses` command does, but applies state filters. Use the latter for the normal case and an unfiltered paginated API call when course discovery must be exhaustive; `per_page=100` alone is exhaustive only when there are at most 100 courses.
+The bundled `scripts/canvas_api.py` helper's `courses` command paginates without state filters by default. `raw-get` paginates when passed `--paginate`; `per_page=100` without pagination is exhaustive only when there are at most 100 results.
 
 Always quote zsh args containing brackets:
 
@@ -45,7 +45,31 @@ Always quote zsh args containing brackets:
 
 ## Pagination
 
-Canvas uses HTTP `Link` headers for pagination. Prefer a helper that follows `rel="next"`. Set `per_page=100` for list calls.
+Canvas uses HTTP `Link` headers for pagination. The bundled CLI follows
+`rel="next"` for `courses`, `sync-course`, and `raw-get --paginate`. Set
+`per_page=100` for list calls.
+
+## Incremental Course Archives
+
+Use the bundled CLI instead of an ad hoc downloader:
+
+```bash
+python3 scripts/canvas_api.py sync-course COURSE_ID --out OUT_DIR
+```
+
+The command refreshes course metadata and visible files together. Files retain
+the Canvas hierarchy below `course-files/`; `course-files-manifest.json`
+records IDs, paths, byte sizes, SHA-256 hashes, and remote update timestamps.
+`canvas-sync.json` records the sync time and any inaccessible endpoints so a
+partial metadata refresh is not mistaken for a complete one. Subsequent runs
+skip verified unchanged files. Downloads use temporary files and are renamed
+into place only after completion and Canvas size validation. Saved JSON and
+HTML redact `verifier`, `token`, and `access_token` values.
+
+The script intentionally does not delete local files that Canvas no longer
+returns: absence can mean hidden or temporarily inaccessible, not deleted.
+Compare the latest manifest before deciding whether stale local files should be
+removed.
 
 ## Output Shaping
 

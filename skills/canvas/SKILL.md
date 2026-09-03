@@ -20,33 +20,39 @@ Canvas-specific data gathering and grade calculations.
 - Do not print Canvas tokens, auth headers, raw cookies, or secret values.
 - Use 1Password only as a scoped import/fallback source when the Keychain entry is missing.
 
-## Existing Local Helper
+## Bundled CLI
 
-Reuse the existing helper, but locate it instead of assuming a fixed Documents
-path because the course-materials tree may move:
-
-```bash
-CANVAS_HELPER="$(rg --files "$HOME/Documents" 2>/dev/null | rg '/canvas-api-research/canvas_api\.py$' | head -n 1)"
-test -n "$CANVAS_HELPER"
-```
-
-Always override the helper's legacy token command with the Keychain command.
-
-Useful commands:
+Use `scripts/canvas_api.py` from this skill. Resolve it relative to this
+`SKILL.md` and invoke that absolute path; never search old course directories
+for a helper. The script uses only the Python standard library and defaults to
+the Keychain token command above.
 
 ```bash
-CANVAS_TOKEN_COMMAND='keychain-secret get codex.canvas credential' python3 "$CANVAS_HELPER" whoami
-CANVAS_TOKEN_COMMAND='keychain-secret get codex.canvas credential' python3 "$CANVAS_HELPER" courses --include-completed
-CANVAS_TOKEN_COMMAND='keychain-secret get codex.canvas credential' python3 "$CANVAS_HELPER" raw-get /api/v1/users/self/courses --param per_page=100 --param 'include[]=total_scores' --param 'include[]=term'
-CANVAS_TOKEN_COMMAND='keychain-secret get codex.canvas credential' python3 "$CANVAS_HELPER" raw-get /api/v1/courses/COURSE_ID/assignment_groups --param 'include[]=assignments' --param 'include[]=submission'
-CANVAS_TOKEN_COMMAND='keychain-secret get codex.canvas credential' python3 "$CANVAS_HELPER" sync-course COURSE_ID --out OUT_DIR
+CANVAS_API="<absolute path to this skill>/scripts/canvas_api.py"
+python3 "$CANVAS_API" whoami
+python3 "$CANVAS_API" courses
+python3 "$CANVAS_API" raw-get /api/v1/users/self/courses --paginate --param per_page=100 --param 'include[]=total_scores' --param 'include[]=term'
+python3 "$CANVAS_API" raw-get /api/v1/courses/COURSE_ID/assignment_groups --paginate --param 'include[]=assignments' --param 'include[]=submission'
+python3 "$CANVAS_API" sync-course COURSE_ID --out OUT_DIR
 ```
 
-Quote parameters containing `[]` in zsh, such as `'include[]=total_scores'`, or zsh will treat them as glob patterns.
+`sync-course` refreshes metadata and downloads visible files by default. It:
+
+- preserves the Canvas folder hierarchy under `OUT_DIR/course-files/`
+- skips byte-identical files recorded in `course-files-manifest.json`
+- downloads new or changed files atomically and verifies Canvas-reported sizes
+- stores SHA-256 checksums and remote `updated_at` values in the file manifest
+- records sync time and any inaccessible endpoints in `canvas-sync.json`
+- redacts Canvas verifier/token query parameters from saved metadata
+
+Use `--metadata-only` only when files are intentionally unnecessary, and
+`--force` only when every visible file must be downloaded again. Quote
+parameters containing `[]` in zsh, such as `'include[]=total_scores'`, or zsh
+will treat them as glob patterns.
 
 ## Workflow
 
-1. Identify the course with the paginated `/api/v1/users/self/courses`, including `term` and `total_scores`. Start without `enrollment_state` or `state[]` filters when searching across terms.
+1. Identify the course with `python3 "$CANVAS_API" courses`, which paginates `/api/v1/users/self/courses` and starts without enrollment/state filters. Use `--active-only` only when the request is explicitly limited to active courses.
 2. Canvas may return enrolled-course stubs whose `name` and `course_code` are null. Hydrate every such ID with `GET /api/v1/courses/:id` and, if useful, `/api/v1/courses/:id/sections`. A `403` leaves the ID inaccessible/unresolved; it does not prove the requested course is absent.
 3. Fetch course details with `include[]=syllabus_body,total_scores` and verify whether `apply_assignment_group_weights` is true.
 4. Fetch assignment groups with `include[]=assignments` and `include[]=submission`.
@@ -68,9 +74,11 @@ Quote parameters containing `[]` in zsh, such as `'include[]=total_scores'`, or 
 
 ## Files And Syllabus
 
-- A syllabus page may link to a full syllabus PDF through a Canvas file endpoint. Fetch file metadata from `/api/v1/courses/:course_id/files/:file_id`, then download the `url` field.
+- For “download/update the course materials,” use bundled `sync-course` rather than manually fetching file URLs.
+- A syllabus page may link to a full syllabus PDF through a Canvas file endpoint. The sync command inventories API-linked files; use `raw-get` for individual metadata only when needed.
 - Use `pdftotext` when available to extract grade intervals and policy details from syllabus PDFs.
 - Course files and media may be external LTI systems. Canvas often exposes only the link, iframe, or file metadata, not the original video or external resource.
+- Never print or persist live Canvas verifier URLs. The bundled CLI uses them only during download and redacts them from saved JSON and terminal output.
 
 ## References
 
