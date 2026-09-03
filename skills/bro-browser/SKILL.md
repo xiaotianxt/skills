@@ -19,6 +19,14 @@ bro is the local Rust MCP server in `/Users/yupeit/dev/bro`. It exposes:
 
 Use `127.0.0.1`, not `localhost`, to avoid IPv6 mismatch with local services.
 
+## Pi Integration
+
+When native `bro_*` Pi tools are present, use them directly instead of invoking
+`bro-call.mjs` through bash. Pi keeps one MCP connection per session, exposes
+common extraction, flow, and one-call network capture tools initially, and loads
+lower-level tools through `bro_search_tools`. Use the shell helper only as a
+fallback when native tools are unavailable.
+
 ## Chrome Connector Parity
 
 Prefer bro for parallel browser work. It has first-class batch tools with
@@ -72,10 +80,10 @@ Also confirm the bro settings file exists:
 ls -l ~/.bro/settings.json
 ```
 
-If running from outside this skill directory, use the absolute helper path:
+If running from outside this skill directory, use the stable runtime helper path:
 
 ```bash
-/Users/yupeit/.codex/skills/bro-browser/scripts/bro-call.mjs browsers_context
+/Users/yupeit/.agents/skills/bro-browser/scripts/bro-call.mjs browsers_context
 ```
 
 If the server is not running, start it from the bro repo:
@@ -118,7 +126,8 @@ Choose the highest-level bro tool that matches the user outcome:
 - Run the same interaction on many independent URLs: call `browser.batch.flow` with `inputs`, shared `steps`, bounded `concurrency`, and `cleanup:true`. Use this instead of starting many separate flow sessions when every page needs the same click/wait/eval/read workflow, such as opening review panels on a product set.
 - Interact with one page over multiple steps: use `browser.flow.start`, `browser.flow.act`, `browser.flow.observe`, then `browser.flow.finish`.
 - Inspect or operate on an existing tab: call `browsers_context`, then `tabs_context`, pin `browserId` and `tabId`, and use raw tab tools.
-- Debug a page or local app: create or pin a tab, then use `read_console_messages`, `read_network_requests`, and `get_response_body`.
+- Trigger and inspect a network request: use `browser.network.capture` so monitoring, trigger execution, request matching, response-body collection, and cleanup happen in one call. Use raw `read_network_requests` and `get_response_body` only for deliberate best-effort diagnostics.
+- Debug console output: create or pin a tab, then use `read_console_messages`.
 
 Use compact extraction defaults. Leave `includeLinks:false` unless URLs are part of the answer or the next crawl step. Leave `includeA11y:false` unless DOM extraction is partial/empty or you need controls and labels. Read `references/workflows.md` for concrete workflow recipes and `references/tool-map.md` for tool arguments and fallback rules.
 
@@ -145,6 +154,7 @@ needs live tabs afterward.
 - Prefer background tabs with `active:false` unless foreground focus is part of the request.
 - After discovery, never operate on "whatever tab is active". Record `browserId` and `tabId`, then pass them explicitly.
 - Track every task-owned tab. Close it with `tabs_close`, `agent_done`, or `browser.flow.finish` unless the user asked to keep it open.
+- In flow steps, use `select` for `<select>` option values. Eval code is a JavaScript expression with awaited Promises; wrap multiple statements in an IIFE instead of using a top-level `return`.
 - Ask before submitting forms, sending messages, uploading files, making purchases, changing account settings, or reading pages likely to contain highly sensitive data.
 - Keep bro generic. Do not add site-specific research policy to the bro bridge; put site workflows in downstream skills or task-local instructions.
 
@@ -155,6 +165,7 @@ scripts/bro-call.mjs browser.extract '{"url":"https://example.com","active":fals
 scripts/bro-call.mjs browser.current.extract '{"maxChars":8000}'
 scripts/bro-call.mjs browser.batch.extract '{"urls":["https://example.com/a","https://example.com/b"],"concurrency":4,"maxChars":6000}'
 scripts/bro-call.mjs browser.batch.flow '{"inputs":[{"id":"a","url":"https://example.com/a"},{"id":"b","url":"https://example.com/b"}],"steps":[{"type":"wait","ms":1000},{"type":"eval","code":"document.body.innerText"}],"concurrency":4,"cleanup":true}' --json
+scripts/bro-call.mjs browser.network.capture '{"url":"https://example.com","code":"fetch(\"/api/data\").then(r => r.json())","urlIncludes":"/api/data","includeResponseBodies":true}' --json
 scripts/bro-call.mjs browser.flow.start '{"url":"https://example.com","active":false}'
 scripts/bro-call.mjs browser.flow.observe '{"sessionId":"SESSION_ID","mode":"text"}'
 scripts/bro-call.mjs browser.flow.finish '{"sessionId":"SESSION_ID","cleanup":true}'
@@ -169,6 +180,7 @@ For structured output, add `--json`.
 - Unauthorized MCP call: check that `~/.bro/settings.json` exists, the helper is reading that file, and the extension options use the same token.
 - No browsers connected: connect the bro extension and verify `/status`.
 - Unknown `browserId`: refresh `browsers_context`; do not silently fall back to another browser.
+- `browser.network.capture` times out: verify the trigger expression actually executes (use `fetch(...)` or `() => fetch(...)`), narrow `urlIncludes`, and inspect the returned error. Do not replace it with cross-turn raw monitoring loops.
 - `browser.extract` or `browser.current.extract` returns an error or a clearly partial/empty result: inspect diagnostics, then fall back in this order as relevant:
   1. Retry the same facade tool with `includeA11y:true`, `includeLinks:true` only if links matter, a larger `maxChars`, or a higher `minChars`.
   2. Use `browsers_context` and `tabs_context` only if you need to confirm connection state, find an existing tab, or recover a task-owned tab left open by a failed extraction.
