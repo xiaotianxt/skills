@@ -108,6 +108,13 @@ scripts/bro-call.mjs browser.flow.finish '{"sessionId":"SESSION_ID","cleanup":tr
 
 Use `mode:"a11y"` when visible text is insufficient to identify controls. Ask for explicit confirmation before a flow submits data or changes user state.
 
+For iframe interaction, list frames using the flow's tab ID, then pass the child frame ID to each relevant step:
+
+```bash
+scripts/bro-call.mjs frames_list '{"tabId":123}' --json
+scripts/bro-call.mjs browser.flow.act '{"sessionId":"SESSION_ID","steps":[{"type":"fill","css":"#name","value":"Alice","frameId":"FRAME_ID"},{"type":"click","css":"#submit","frameId":"FRAME_ID"},{"type":"read_text","frameId":"FRAME_ID"}]}' --json
+```
+
 ## Multi-Tab Session Lifecycle
 
 Use this when the task needs several live tabs, when you are operating on
@@ -168,37 +175,19 @@ Do not use foreground focus as identity after this point. The user may keep usin
 
 ## Debug A Local Web App
 
-Use this for localhost app testing when the user wants browser-side console, network, or DOM evidence.
-
-1. Create a background tab:
+Use one-call capture facades when an action should trigger diagnostics:
 
 ```bash
-scripts/bro-call.mjs tabs_create '{"url":"http://127.0.0.1:3000","active":false}' --json
+scripts/bro-call.mjs browser.console.capture '{"url":"http://127.0.0.1:3000","code":"document.querySelector(\"#save\").click()","timeoutMs":5000}' --json
+scripts/bro-call.mjs browser.network.capture '{"url":"http://127.0.0.1:3000","code":"fetch(\"/api/status\").then(r => r.json())","urlIncludes":"/api/status","includeResponseBodies":true}' --json
 ```
 
-2. Save `browserId` and `tabId`.
-3. Read page text or accessibility tree.
-4. Inspect console and network:
+These calls own setup and cleanup and do not rely on Manifest V3 monitor state surviving model think time. Use raw console/network primitives only when inspecting an already-running monitor is explicitly required.
 
-```bash
-scripts/bro-call.mjs read_console_messages '{"browserId":"BROWSER_ID","tabId":123,"clear":false}'
-scripts/bro-call.mjs read_network_requests '{"browserId":"BROWSER_ID","tabId":123,"filter":"failed","timeoutMs":3000}'
-```
-
-5. Close task-owned tabs:
-
-```bash
-scripts/bro-call.mjs tabs_close '{"browserId":"BROWSER_ID","tabId":123}'
-```
-
-If the task needs screenshots or visual QA, use browser-specific tooling available in the session when required by the frontend workflow; bro is best for browser state and extraction.
+For visual QA, `computer` screenshots remain background-capable and report CSS viewport/device-scale guidance. Real mouse/keyboard input activates and focuses the target tab/window.
 
 ## Cleanup
 
-For raw tabs, call `tabs_close` on every tab you created. For flow sessions, call `browser.flow.finish`. For multi-tab agent work, `agent_done` can signal the session end:
-
-```bash
-scripts/bro-call.mjs agent_done '{"browserId":"BROWSER_ID","tabIds":[123,124]}'
-```
+For raw tabs, call `tabs_close` on every tab you created. For flow sessions, call `browser.flow.finish`. For multi-tab work, call `tabs_finalize` once so owned tabs close while claimed tabs remain open unless explicitly kept.
 
 Do not close tabs that existed before the task unless the user explicitly asked for that.

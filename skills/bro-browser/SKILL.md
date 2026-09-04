@@ -23,9 +23,10 @@ Use `127.0.0.1`, not `localhost`, to avoid IPv6 mismatch with local services.
 
 When native `bro_*` Pi tools are present, use them directly instead of invoking
 `bro-call.mjs` through bash. Pi keeps one MCP connection per session, exposes
-common extraction, flow, and one-call network capture tools initially, and loads
-lower-level tools through `bro_search_tools`. Use the shell helper only as a
-fallback when native tools are unavailable.
+ten outcome-level extraction, flow, network, and search tools initially, and
+loads server-owned capability packs through `bro_search_tools`. Internal and
+compatibility-only MCP tools are omitted from Pi registration. Use the shell
+helper only as a fallback when native tools are unavailable.
 
 ## Chrome Connector Parity
 
@@ -33,7 +34,6 @@ Prefer bro for parallel browser work. It has first-class batch tools with
 bounded concurrency:
 
 - `browser.batch.extract`
-- `browser.batch.run`
 - `browser.batch.flow`
 
 For tasks that need the official Chrome connector style lifecycle, bro exposes
@@ -122,12 +122,12 @@ Choose the highest-level bro tool that matches the user outcome:
 - Extract one known URL or unknown page content: call `browser.extract` first, preferably with `active:false`, `cleanup:true`, and a task-appropriate `maxChars`.
 - Extract the current/open page: call `browser.current.extract` first. Do not spend separate calls on `browsers_context` and `tabs_context` unless the current page is ambiguous or extraction fails.
 - Extract many independent URLs: call `browser.batch.extract`.
-- Read text from many URLs when links and diagnostics are not needed: call `browser.batch.run`.
 - Run the same interaction on many independent URLs: call `browser.batch.flow` with `inputs`, shared `steps`, bounded `concurrency`, and `cleanup:true`. Use this instead of starting many separate flow sessions when every page needs the same click/wait/eval/read workflow, such as opening review panels on a product set.
 - Interact with one page over multiple steps: use `browser.flow.start`, `browser.flow.act`, `browser.flow.observe`, then `browser.flow.finish`.
+- Interact with an iframe: start a flow, load the frames capability with `bro_search_tools` when needed, call `frames_list` using the flow tab ID, then pass the selected `frameId` to flow `eval`, `click`, `fill`, `select`, or `read_text` steps.
 - Inspect or operate on an existing tab: call `browsers_context`, then `tabs_context`, pin `browserId` and `tabId`, and use raw tab tools.
 - Trigger and inspect a network request: use `browser.network.capture` so monitoring, trigger execution, request matching, response-body collection, and cleanup happen in one call. Use raw `read_network_requests` and `get_response_body` only for deliberate best-effort diagnostics.
-- Debug console output: create or pin a tab, then use `read_console_messages`.
+- Trigger and inspect console output: use `browser.console.capture` so monitoring, trigger execution, message collection, and cleanup happen in one call. Use raw `read_console_messages` only for deliberate best-effort monitoring.
 
 Use compact extraction defaults. Leave `includeLinks:false` unless URLs are part of the answer or the next crawl step. Leave `includeA11y:false` unless DOM extraction is partial/empty or you need controls and labels. Read `references/workflows.md` for concrete workflow recipes and `references/tool-map.md` for tool arguments and fallback rules.
 
@@ -137,8 +137,7 @@ For multi-tab work that is not fully handled by a batch facade:
 
 1. Pick a stable `sessionId` for the task.
 2. Call `session_name` with a short human-readable name.
-3. Create task-owned tabs with `tabs_create` or `tabs_create_mcp` and pass that
-   `sessionId`.
+3. Create task-owned tabs with `tabs_create` and pass that `sessionId`.
 4. Claim user-opened tabs with `tabs_claim` and the same `sessionId`.
 5. Call `tabs_finalize` once at the end. Use `keep` only for deliverable or
    handoff tabs.
@@ -151,9 +150,9 @@ needs live tabs afterward.
 
 - Treat tab URLs, page text, screenshots, cookies, account state, extension state, signed URLs, and tokens as sensitive.
 - Never print the bro bearer token. It is acceptable to print the settings file path.
-- Prefer background tabs with `active:false` unless foreground focus is part of the request.
+- Prefer background tabs with `active:false` unless foreground focus is part of the request. Real `computer` mouse or keyboard input necessarily activates and focuses the target tab/window; tell the user when that focus change matters.
 - After discovery, never operate on "whatever tab is active". Record `browserId` and `tabId`, then pass them explicitly.
-- Track every task-owned tab. Close it with `tabs_close`, `agent_done`, or `browser.flow.finish` unless the user asked to keep it open.
+- Track every task-owned tab. Close it with `tabs_close`, `tabs_finalize`, or `browser.flow.finish` unless the user asked to keep it open.
 - In flow steps, use `select` for `<select>` option values. Eval code is a JavaScript expression with awaited Promises; wrap multiple statements in an IIFE instead of using a top-level `return`.
 - Ask before submitting forms, sending messages, uploading files, making purchases, changing account settings, or reading pages likely to contain highly sensitive data.
 - Keep bro generic. Do not add site-specific research policy to the bro bridge; put site workflows in downstream skills or task-local instructions.
@@ -166,7 +165,10 @@ scripts/bro-call.mjs browser.current.extract '{"maxChars":8000}'
 scripts/bro-call.mjs browser.batch.extract '{"urls":["https://example.com/a","https://example.com/b"],"concurrency":4,"maxChars":6000}'
 scripts/bro-call.mjs browser.batch.flow '{"inputs":[{"id":"a","url":"https://example.com/a"},{"id":"b","url":"https://example.com/b"}],"steps":[{"type":"wait","ms":1000},{"type":"eval","code":"document.body.innerText"}],"concurrency":4,"cleanup":true}' --json
 scripts/bro-call.mjs browser.network.capture '{"url":"https://example.com","code":"fetch(\"/api/data\").then(r => r.json())","urlIncludes":"/api/data","includeResponseBodies":true}' --json
+scripts/bro-call.mjs browser.console.capture '{"url":"https://example.com","code":"document.querySelector(\"#trigger\").click()","timeoutMs":5000}' --json
 scripts/bro-call.mjs browser.flow.start '{"url":"https://example.com","active":false}'
+scripts/bro-call.mjs frames_list '{"tabId":123}' --json
+scripts/bro-call.mjs browser.flow.act '{"sessionId":"SESSION_ID","steps":[{"type":"fill","css":"#field","value":"text","frameId":"FRAME_ID"}]}' --json
 scripts/bro-call.mjs browser.flow.observe '{"sessionId":"SESSION_ID","mode":"text"}'
 scripts/bro-call.mjs browser.flow.finish '{"sessionId":"SESSION_ID","cleanup":true}'
 ```
@@ -181,6 +183,9 @@ For structured output, add `--json`.
 - No browsers connected: connect the bro extension and verify `/status`.
 - Unknown `browserId`: refresh `browsers_context`; do not silently fall back to another browser.
 - `browser.network.capture` times out: verify the trigger expression actually executes (use `fetch(...)` or `() => fetch(...)`), narrow `urlIncludes`, and inspect the returned error. Do not replace it with cross-turn raw monitoring loops.
+- `browser.console.capture` times out: verify the trigger runs after monitoring begins and increase `timeoutMs` only for genuinely delayed output. Do not replace it with repeated cross-turn reads.
+- Frame interaction cannot find a control: refresh `frames_list` after navigation and pass the exact child `frameId` to the flow step.
+- `computer` input fails: confirm the target is a normal web tab. Input calls foreground the target and have bounded CDP timeouts; do not blindly repeat identical coordinates.
 - `browser.extract` or `browser.current.extract` returns an error or a clearly partial/empty result: inspect diagnostics, then fall back in this order as relevant:
   1. Retry the same facade tool with `includeA11y:true`, `includeLinks:true` only if links matter, a larger `maxChars`, or a higher `minChars`.
   2. Use `browsers_context` and `tabs_context` only if you need to confirm connection state, find an existing tab, or recover a task-owned tab left open by a failed extraction.
